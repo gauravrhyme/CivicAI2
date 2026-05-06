@@ -385,12 +385,45 @@ select.fi option{background:#161B2A;}
 <script>
 /* ════════════════════════════════════════
    CONFIG
-════════════════════════════════════════ */
-var FLASK = location.protocol === 'file:' ? 'http://localhost:10000' : '';
+═════════════════════════════════════════ */
+var API_BASE =
+  location.protocol === 'file:'
+    ? 'http://127.0.0.1:5000'
+    : (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+        ? 'http://127.0.0.1:5000'
+        : '');
+
 var REFRESH_SEC = 30;
-var PAGE_TITLES = {dashboard:'Dashboard',feed:'Live Issue Feed',map:'Ward Heat Map',hall:'Hall of Fame / Shame',clusters:'Issue Clusters'};
- 
-/* ── Complete BBMP 198-ward list (official, zone-organised) ── */
+var PAGE_TITLES = {
+  dashboard:'Dashboard',
+  feed:'Live Issue Feed',
+  map:'Ward Heat Map',
+  hall:'Hall of Fame / Shame',
+  clusters:'Issue Clusters'
+};
+
+/* ════════════════════════════════════════
+   STATE
+═════════════════════════════════════════ */
+var DATA = {issues:[],leaderboard:[],clusters:[],timestamp:null};
+var page = 'dashboard';
+var hallMode = 'fame';
+var feedFilter = 'all';
+var feedWard = '';
+var searchQ = '';
+var wardSel = '';
+var fetching = false;
+var countdown = REFRESH_SEC;
+var cdTimer = null;
+var rptStep = 1;
+var rptForm = {issue_type:'',description:'',location_name:'',ward:'',image_url:null,ward_id:null};
+var aiRes = null;
+var WARD_META = {};
+var BACKEND_OK = false;
+
+/* ════════════════════════════════════════
+   WARD MASTER FROM YOUR EXISTING UI
+═════════════════════════════════════════ */
 var WARDS_BY_ZONE = {
   "Yelahanka Zone": [
     "Kempegowda","Chowdeshwari","Attur Layout","Yelahanka Satellite Town",
@@ -469,69 +502,29 @@ var WARDS_BY_ZONE = {
     "Vijayanagar (Assembly)","Yeshwanthpura (South)"
   ]
 };
- 
-/* Flat de-duplicated ward list for dropdowns */
+
 var WARDS = (function(){
   var seen = {}, out = [];
-  /* Priority wards shown first */
-  var priority = [
-    "Indiranagar","Koramangala","Jayanagar","BTM Layout","HSR Layout",
-    "Whitefield","Electronic City Phase 1","Electronic City Phase 2",
-    "Bellandur","Marathahalli","Bommanahalli","Begur","Akshayanagar",
-    "Gottigere","Anjanapura","Kudlu","Arakere","Kalena Agrahar",
-    "Devarachikkanahalli","Hulimavu","Hongasandra","Singsandra",
-    "Bilekhalli","Jakkasandra","Madivala","Agara","HSR Layout",
-    "Banashankari","Basavanagudi","Jayanagar","Padmanabha Nagar",
-    "JP Nagar","Girinagar","Uttarahalli","Subramanyapura","Yelchenahalli",
-    "Puttenahalli","Chunchaghatta","Vasanthapura","Kumaraswamy Layout",
-    "Sarakki","Ragigudda","Byrasandra","Katriguppe","Vidyapeeta Ward",
-    "Hanumanth Nagar","Srinagar","Nilasandra","Ejipura","Lakkasandra",
-    "Siddapura","Vishveshwara Puram","Sunkenahalli","Attiguppe",
-    "Hampi Nagar","K R Market","Hombegowda Nagara",
-    "Malleswaram","Hebbal","Yelahanka","Rajajinagar","Shivajinagar",
-    "Sadashivanagar","Frazer Town","Vijayanagar","Rajajinagar",
-    "Gandhinagar","Chickpete","Binnipete","Shanthi Nagar","Domlur",
-    "C V Raman Nagar","K R Puram","Varthur","Whitefield","Kadugodi",
-    "Horamavu","HBR Layout","Kammanahalli","Thanisandra","Amrutahalli",
-    "Kodigehalli","Vidyaranyapura","Jakkuru","Kogilu","Kempegowda",
-    "Yelahanka Satellite Town","Chowdeshwari","Attur Layout",
-    "Rajarajeshwari Nagar","Hosakerehalli","Nayandahalli","Nagarabhavi",
-    "Kengeri","Nagadevanahalli","Ullalu","Jnana Bharathi Ward",
-    "Peenya Industrial Area","Laggere","Maruthi Nagar","Rajagopal Nagar",
-    "T Dasarahalli","Jalahalli","Shettihalli","Chikkasandra","Bagalakunte",
-    "Mallasandra","Ramachandrapura","Dodda Bommasandra","Chamundi Nagar",
-    "Ganganagar","Herohalli","Hegganahalli","Sunkadakatte",
-    "Ramamurthy Nagar","Devasandra","Basavanapura","Govindapura",
-    "Hennur","Benniganahalli","Hebbala","Vishwanath Nagenahalli",
-    "Maruthi Seva Nagar","Sarvagna Nagar","Hudi","Kadugodi","Hagadur",
-    "Doddanekkundi","Kalyana Nagar","Lakkasandra","Pulikeshinagar",
-    "Vasanth Nagar","Bharathi Nagar","Halsoor","Seshadripuram",
-    "Nandini Layout","Marappana Palya","Lakshmi Devi Nagar",
-    "Rajaji Nagar","Basaveswara Nagar","Vrisabhavathi Nagar",
-    "Shanthala Nagar","Sampangiram Nagar","Bapuji Nagar","Padarayanapura",
-    "Ibluru","Garvebhavipalya","Haralur","Nyanappana Halli",
-    "Bannerghatta Road","Hulimangala","Akshayanagar"
-  ];
-  priority.forEach(function(w){ if(!seen[w]){ seen[w]=1; out.push(w); } });
   Object.values(WARDS_BY_ZONE).forEach(function(arr){
     arr.forEach(function(w){ if(!seen[w]){ seen[w]=1; out.push(w); } });
   });
   return out;
 })();
- 
+
+/* Existing fallback accountability cards for wards that backend has not mapped yet */
 var OFFICIALS = {
   "Indiranagar":    {mla:"Sowmya Reddy",    bbmp:"R. Srinivas",  dept:"Public Works",   av:"RS",res:12,pend:2, avg:4 },
-  "Koramangala":    {mla:"Rizwan Arshad",    bbmp:"K. Venkatesh", dept:"Infrastructure", av:"KV",res:8, pend:5, avg:11},
-  "Jayanagar":      {mla:"D.K. Suresh",      bbmp:"P. Ramesh",    dept:"Public Works",   av:"PR",res:15,pend:1, avg:3 },
-  "Rajajinagar":    {mla:"S.T. Somashekhar", bbmp:"M. Lakshmi",   dept:"Roads",          av:"ML",res:3, pend:9, avg:22},
-  "Malleswaram":    {mla:"Ashwath Narayan",  bbmp:"V. Anand",     dept:"Public Works",   av:"VA",res:6, pend:4, avg:14},
-  "Hebbal":         {mla:"Byrathi Suresh",    bbmp:"N. Gopal",     dept:"Infrastructure", av:"NG",res:1, pend:11,avg:31},
-  "Whitefield":     {mla:"Priya Krishna",    bbmp:"S. Murthy",    dept:"Roads",          av:"SM",res:10,pend:3, avg:6 },
-  "Electronic City":{mla:"N.A. Harris",      bbmp:"B. Raju",      dept:"Public Works",   av:"BR",res:2, pend:8, avg:27},
-  "HSR Layout":     {mla:"Saritha Ramaiah",  bbmp:"C. Prakash",   dept:"Roads",          av:"CP",res:9, pend:2, avg:5 },
-  "BTM Layout":     {mla:"Ramalinga Reddy",  bbmp:"D. Kumar",     dept:"Infrastructure", av:"DK",res:0, pend:13,avg:45},
+  "Koramangala":    {mla:"Rizwan Arshad",   bbmp:"K. Venkatesh", dept:"Infrastructure", av:"KV",res:8, pend:5, avg:11},
+  "Jayanagar":      {mla:"D.K. Suresh",     bbmp:"P. Ramesh",    dept:"Public Works",   av:"PR",res:15,pend:1, avg:3 },
+  "Rajajinagar":    {mla:"S.T. Somashekhar",bbmp:"M. Lakshmi",   dept:"Roads",          av:"ML",res:3, pend:9, avg:22},
+  "Malleswaram":    {mla:"Ashwath Narayan", bbmp:"V. Anand",     dept:"Public Works",   av:"VA",res:6, pend:4, avg:14},
+  "Hebbal":         {mla:"Byrathi Suresh",  bbmp:"N. Gopal",     dept:"Infrastructure", av:"NG",res:1, pend:11,avg:31},
+  "Whitefield":     {mla:"Priya Krishna",   bbmp:"S. Murthy",    dept:"Roads",          av:"SM",res:10,pend:3, avg:6 },
+  "Electronic City":{mla:"N.A. Harris",     bbmp:"B. Raju",      dept:"Public Works",   av:"BR",res:2, pend:8, avg:27},
+  "HSR Layout":     {mla:"Saritha Ramaiah", bbmp:"C. Prakash",   dept:"Roads",          av:"CP",res:9, pend:2, avg:5 },
+  "BTM Layout":     {mla:"Ramalinga Reddy", bbmp:"D. Kumar",     dept:"Infrastructure", av:"DK",res:0, pend:13,avg:45}
 };
- 
+
 var SRC_META = {
   twitter:{bg:'rgba(29,161,242,0.12)',color:'#1DA1F2',label:'Twitter/X'},
   reddit: {bg:'rgba(255,69,0,0.12)',  color:'#FF4500',label:'Reddit'},
@@ -541,36 +534,18 @@ var SRC_META = {
   scrape: {bg:'rgba(59,158,255,0.12)',color:'#3B9EFF',label:'Live'},
   seed:   {bg:'rgba(155,109,255,0.12)',color:'#9B6DFF',label:'Demo'},
   'OpenCity CSV':{bg:'rgba(155,109,255,0.12)',color:'#9B6DFF',label:'OpenCity'},
-  'OpenCity KML':{bg:'rgba(0,200,150,0.12)',color:'#00C896',label:'OpenCity'},
+  'OpenCity KML':{bg:'rgba(0,200,150,0.12)',color:'#00C896',label:'OpenCity'}
 };
- 
+
 var ISSUE_TYPES = ["Pothole","Garbage","Broken Streetlight","Open Drain","Illegal Dumping","Damaged Footpath","Water Logging","Encroachment"];
- 
 var SEV_COL = {critical:'#FF3355',high:'#FF8C00',medium:'#FFD60A',low:'#30D158'};
 var SEV_BG  = {critical:'rgba(255,51,85,0.12)',high:'rgba(255,140,0,0.12)',medium:'rgba(255,214,10,0.12)',low:'rgba(48,209,88,0.12)'};
 function sc(s){ return SEV_COL[s]||'#30D158'; }
 function sbg(s){ return SEV_BG[s]||'rgba(48,209,88,0.12)'; }
- 
+
 /* ════════════════════════════════════════
-   STATE
-════════════════════════════════════════ */
-var DATA = {issues:[],leaderboard:[],clusters:[],timestamp:null};
-var page = 'dashboard';
-var hallMode = 'fame';
-var feedFilter = 'all';
-var feedWard = '';
-var searchQ = '';
-var wardSel = '';
-var fetching = false;
-var countdown = REFRESH_SEC;
-var cdTimer = null;
-var rptStep = 1;
-var rptForm = {issue_type:'',description:'',location_name:'',ward:'',image_url:null};
-var aiRes = null;
- 
-/* ════════════════════════════════════════
-   SEED DATA (shown immediately while backend loads)
-════════════════════════════════════════ */
+   DEMO DATA FALLBACK
+═════════════════════════════════════════ */
 function gid(){ return Math.random().toString(36).slice(2,9).toUpperCase(); }
 function dAgo(n){ var d=new Date(); d.setDate(d.getDate()-n); return d.toISOString(); }
 function dopen(d){ return Math.floor((Date.now()-new Date(d))/86400000); }
@@ -579,20 +554,15 @@ function fmtd(iso){
   var d=new Date(iso);
   return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+' · '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
 }
- 
+
 var SEED = [
-  {id:gid(),issue_type:"Pothole",          description:"Large pothole on 12th Main causing near-miss accidents daily — 3 bikes fell this week",  location_name:"Indiranagar, 12th Main",    ward:"Indiranagar",    severity:"critical",status:"open",    created_at:dAgo(14),upvotes:43,source:"seed",image_url:null,latitude:12.9784,longitude:77.6408},
-  {id:gid(),issue_type:"Garbage",          description:"Overflowing garbage bins — 5 days uncollected near market, stench severe for residents",  location_name:"Koramangala, 5th Block",    ward:"Koramangala",    severity:"high",   status:"open",    created_at:dAgo(8), upvotes:27,source:"seed",image_url:null,latitude:12.9352,longitude:77.6245},
-  {id:gid(),issue_type:"Broken Streetlight",description:"3 consecutive streetlights dead since last week — road completely dark at night",          location_name:"Jayanagar, 4th Block",      ward:"Jayanagar",      severity:"medium", status:"resolved",created_at:dAgo(20),upvotes:18,source:"seed",image_url:null,latitude:12.9299,longitude:77.5924},
-  {id:gid(),issue_type:"Open Drain",       description:"Exposed drain posing health hazard near school gate — children and elderly at risk",        location_name:"Rajajinagar, 3rd Block",    ward:"Rajajinagar",    severity:"high",   status:"open",    created_at:dAgo(5), upvotes:31,source:"seed",image_url:null,latitude:12.9914,longitude:77.5530},
-  {id:gid(),issue_type:"Water Logging",    description:"Severe waterlogging — vehicles stuck 2+ hours after every rain on main IT corridor",        location_name:"Whitefield, ITPL Road",     ward:"Whitefield",     severity:"critical",status:"open",    created_at:dAgo(2), upvotes:56,source:"seed",image_url:null,latitude:12.9698,longitude:77.7499},
-  {id:gid(),issue_type:"Garbage",          description:"Dead animal on main road not removed for 3 days — serious disease risk to area residents",  location_name:"Hebbal, Lake Road",         ward:"Hebbal",         severity:"high",   status:"open",    created_at:dAgo(45),upvotes:19,source:"seed",image_url:null,latitude:13.0358,longitude:77.5970},
-  {id:gid(),issue_type:"Pothole",          description:"Road caved in, partially blocking one full traffic lane — causing daily jams",              location_name:"BTM Layout, 80ft Road",     ward:"BTM Layout",     severity:"critical",status:"open",    created_at:dAgo(18),upvotes:41,source:"seed",image_url:null,latitude:12.9165,longitude:77.6101},
-  {id:gid(),issue_type:"Pothole",          description:"Deep pothole causing near-miss accidents every morning rush hour near IT park gate",         location_name:"Electronic City, Phase 1",  ward:"Electronic City",severity:"high",   status:"open",    created_at:dAgo(27),upvotes:38,source:"seed",image_url:null,latitude:12.8399,longitude:77.6770},
-  {id:gid(),issue_type:"Illegal Dumping",  description:"Construction debris dumped on public footpath — blocking pedestrians and wheelchair users", location_name:"Hebbal, Ring Road",         ward:"Hebbal",         severity:"medium", status:"open",    created_at:dAgo(31),upvotes:9, source:"seed",image_url:null,latitude:13.0400,longitude:77.5900},
-  {id:gid(),issue_type:"Damaged Footpath", description:"Broken tiles creating accessibility hazard near mall — elderly resident fell last week",     location_name:"BTM Layout, 2nd Stage",     ward:"BTM Layout",     severity:"low",    status:"resolved",created_at:dAgo(30),upvotes:7, source:"seed",image_url:null,latitude:12.9100,longitude:77.6050},
+  {id:gid(),issue_type:"Pothole",description:"Large pothole on 12th Main causing near-miss accidents daily — 3 bikes fell this week",location_name:"Indiranagar, 12th Main",ward:"Indiranagar",ward_id:null,zone:"South",severity:"critical",status:"open",created_at:dAgo(14),upvotes:43,source:"seed",image_url:null,latitude:12.9784,longitude:77.6408},
+  {id:gid(),issue_type:"Garbage",description:"Overflowing garbage bins — 5 days uncollected near market, stench severe for residents",location_name:"Koramangala, 5th Block",ward:"Koramangala",ward_id:null,zone:"South",severity:"high",status:"open",created_at:dAgo(8),upvotes:27,source:"seed",image_url:null,latitude:12.9352,longitude:77.6245},
+  {id:gid(),issue_type:"Broken Streetlight",description:"3 consecutive streetlights dead since last week — road completely dark at night",location_name:"Jayanagar, 4th Block",ward:"Jayanagar",ward_id:null,zone:"South",severity:"medium",status:"resolved",created_at:dAgo(20),upvotes:18,source:"seed",image_url:null,latitude:12.9299,longitude:77.5924},
+  {id:gid(),issue_type:"Open Drain",description:"Exposed drain posing health hazard near school gate — children and elderly at risk",location_name:"Rajajinagar, 3rd Block",ward:"Rajajinagar",ward_id:null,zone:"West",severity:"high",status:"open",created_at:dAgo(5),upvotes:31,source:"seed",image_url:null,latitude:12.9914,longitude:77.5530},
+  {id:gid(),issue_type:"Water Logging",description:"Severe waterlogging — vehicles stuck 2+ hours after every rain on main IT corridor",location_name:"Whitefield, ITPL Road",ward:"Whitefield",ward_id:null,zone:"Mahadevapura",severity:"critical",status:"open",created_at:dAgo(2),upvotes:56,source:"seed",image_url:null,latitude:12.9698,longitude:77.7499}
 ];
- 
+
 function seedLB(){
   var wc={};
   SEED.forEach(function(i){ wc[i.ward]=(wc[i.ward]||0)+1; });
@@ -601,7 +571,7 @@ function seedLB(){
 function seedClusters(){
   return [
     {cluster:"Pothole-related road damage across central Bengaluru",items:SEED.filter(function(i){ return i.issue_type==='Pothole'; })},
-    {cluster:"Garbage and sanitation issues — north and east zones",items:SEED.filter(function(i){ return i.issue_type==='Garbage'; })},
+    {cluster:"Garbage and sanitation issues — north and east zones",items:SEED.filter(function(i){ return i.issue_type==='Garbage'; })}
   ];
 }
 function lbFromIssues(issues){
@@ -609,14 +579,174 @@ function lbFromIssues(issues){
   issues.forEach(function(i){ wc[i.ward]=(wc[i.ward]||0)+1; });
   return Object.entries(wc).map(function(e){ return {ward:e[0],count:e[1]}; }).sort(function(a,b){ return b.count-a.count; });
 }
- 
+function clustersFromIssues(issues){
+  var groups={};
+  issues.forEach(function(i){
+    var key=i.issue_type||'Other';
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(i);
+  });
+  return Object.entries(groups)
+    .filter(function(entry){ return entry[1].length >= 2; })
+    .map(function(entry){
+      return {
+        cluster: entry[0]+' issues across multiple Bengaluru locations',
+        items: entry[1].slice(0,8)
+      };
+    })
+    .slice(0,8);
+}
+
 /* ════════════════════════════════════════
-   FETCH — robust, never crashes frontend
-════════════════════════════════════════ */
+   HELPERS
+═════════════════════════════════════════ */
+function e(id){ return document.getElementById(id); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function safeEsc(s){ return String(s||'').replace(/`/g,"'").replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n'); }
+function pill(txt,col,bg){ return '<span class="pill" style="color:'+col+';background:'+bg+'">'+txt+'</span>'; }
+function spill(s){ return pill(s,sc(s),sbg(s)); }
+function stpill(s){ return s==='resolved'||s==='closed' ? pill('resolved','#30D158','rgba(48,209,88,0.12)') : pill('open','#FF8C00','rgba(255,140,0,0.12)'); }
+function srcbdg(src){ var m=SRC_META[src]||SRC_META.citizen; return '<span class="spill" style="color:'+m.color+';background:'+m.bg+'">'+m.label+'</span>'; }
+function pinsvg(){ return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'; }
+function xsvg(){ return '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'; }
+function prog(pct,col){ return '<div class="prog"><div class="prog-f" style="width:'+Math.min(pct,100)+'%;background:'+col+'"></div></div>'; }
+
+function zoneLabelToShort(label){
+  return String(label||'')
+    .replace(/\s+Zone$/i,'')
+    .replace(/^Bangalore\s+/i,'')
+    .replace(/^Bengaluru\s+/i,'')
+    .replace('Rajarajeshwari Nagar','RR Nagar');
+}
+
+function guessZoneFromWard(ward){
+  var found = '';
+  Object.keys(WARDS_BY_ZONE).forEach(function(zone){
+    if (WARDS_BY_ZONE[zone].indexOf(ward) > -1) found = zoneLabelToShort(zone);
+  });
+  return found || '';
+}
+
+function inferWardFromText(text){
+  var t = String(text||'').toLowerCase();
+  for(var i=0;i<WARDS.length;i++){
+    if(t.indexOf(WARDS[i].toLowerCase())>-1) return WARDS[i];
+  }
+  return '';
+}
+
+function getOfficerForWard(ward){
+  if (WARD_META[ward]) {
+    return {
+      mla: WARD_META[ward].mla || 'Local MLA',
+      bbmp: WARD_META[ward].joint_commissioner || WARD_META[ward].zonal_commissioner || 'BBMP Officer',
+      dept: WARD_META[ward].engineering_owner || WARD_META[ward].health_owner || 'BBMP Department',
+      av: (WARD_META[ward].mla || 'ML').split(' ').map(function(x){ return x[0]; }).slice(0,2).join('').toUpperCase() || 'BB',
+      res: 0, pend: 0, avg: 0
+    };
+  }
+  return OFFICIALS[ward] || {mla:'Local MLA',bbmp:'BBMP Officer',dept:'Public Works',av:'BB',res:0,pend:0,avg:0};
+}
+
+async function api(path, options){
+  options = options || {};
+  var res = await fetch(API_BASE + path, {
+    method: options.method || 'GET',
+    headers: Object.assign({'Content-Type':'application/json'}, options.headers || {}),
+    body: options.body || null
+  });
+
+  var data = null;
+  try { data = await res.json(); } catch(err) { data = null; }
+
+  if(!res.ok){
+    throw new Error((data && data.error) || ('HTTP '+res.status));
+  }
+  return data;
+}
+
+function normaliseIssue(r){
+  var sev = r.severity && ['critical','high','medium','low'].indexOf(r.severity)>-1 ? r.severity : 'medium';
+  var ts = r.timestamp || r.created_at || new Date().toISOString();
+  var ward = r.ward || r.ward_name || '';
+  var wardId = r.ward_id || null;
+  if(!ward) ward = inferWardFromText((r.description||'') + ' ' + (r.location_name||''));
+  var zone = r.zone || (ward ? guessZoneFromWard(ward) : '');
+  return {
+    id: r.id || gid(),
+    issue_type: r.issue_type || 'Pothole',
+    description: (r.description || 'No description').slice(0,220),
+    location_name: r.location_name || r.location_text || ward || '',
+    ward: ward || 'Unknown Ward',
+    ward_id: wardId,
+    zone: zone || '',
+    severity: sev,
+    status: (r.status || 'open').toLowerCase(),
+    source: r.source || 'scrape',
+    source_url: r.source_url || null,
+    latitude: r.latitude || null,
+    longitude: r.longitude || null,
+    timestamp: ts,
+    created_at: ts,
+    upvotes: r.upvotes || Math.floor(Math.random()*30)+1,
+    image_url: r.image_url || null,
+    mla: r.mla || (WARD_META[ward] ? WARD_META[ward].mla : null) || (OFFICIALS[ward] ? OFFICIALS[ward].mla : 'Local MLA')
+  };
+}
+
+/* ════════════════════════════════════════
+   BACKEND LOADERS
+═════════════════════════════════════════ */
+async function loadWardMetaIndex(){
+  try{
+    var raw = await api('/wards');
+    var wards = Array.isArray(raw) ? raw : (raw.wards || []);
+    wards.forEach(function(w){
+      var key = w.ward_name || w.ward || '';
+      if(key){
+        WARD_META[key] = {
+          ward_id: w.ward_id,
+          ward_name: w.ward_name || key,
+          zone: w.zone || guessZoneFromWard(key),
+          constituency: w.constituency || '',
+          constituency_no: w.constituency_no || '',
+          mla: w.mla || '',
+          mla_party: w.mla_party || '',
+          zonal_commissioner: w.zonal_commissioner || '',
+          joint_commissioner: w.joint_commissioner || '',
+          engineering_owner: w.engineering_owner || '',
+          health_owner: w.health_owner || '',
+          swm_contractor: w.swm_contractor || '',
+          bwssb_division: w.bwssb_division || '',
+          bescom_subdivision: w.bescom_subdivision || ''
+        };
+      }
+    });
+  }catch(err){
+    console.warn('[loadWardMetaIndex]', err);
+  }
+}
+
+async function fetchIssuesFromBackend(){
+  var params = [];
+  if(feedWard) params.push('ward=' + encodeURIComponent(feedWard));
+  var url = '/issues' + (params.length ? '?' + params.join('&') : '');
+  var raw = await api(url);
+  var issues = (raw.issues || raw || []).map(normaliseIssue);
+
+  DATA = {
+    issues: issues,
+    leaderboard: raw.leaderboard && raw.leaderboard.length ? raw.leaderboard : lbFromIssues(issues),
+    clusters: raw.clusters && raw.clusters.length ? raw.clusters : clustersFromIssues(issues),
+    timestamp: raw.timestamp || new Date().toISOString()
+  };
+  BACKEND_OK = true;
+  syncUI();
+  render();
+}
+
 function setFetchUI(loading){
-  var btn=document.getElementById('fbtn');
-  var ico=document.getElementById('ficon');
-  var lbl=document.getElementById('flbl');
+  var btn=e('fbtn'), ico=e('ficon'), lbl=e('flbl');
   if(!btn) return;
   btn.disabled=loading;
   ico.innerHTML=loading
@@ -624,84 +754,45 @@ function setFetchUI(loading){
     : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>';
   lbl.textContent=loading?'Fetching…':'Fetch Live';
 }
- 
-function normaliseIssue(r){
-  /* Map backend fields → frontend model safely */
-  var sev = r.severity && ['critical','high','medium','low'].indexOf(r.severity)>-1 ? r.severity : 'medium';
-  var ts  = r.timestamp || r.created_at || new Date().toISOString();
-  var w   = r.ward || '';
-  if(WARDS.indexOf(w)<0) w = inferWardFromText(r.description||r.ward||'');
-  return {
-    id:           r.id || gid(),
-    issue_type:   r.issue_type || 'Pothole',
-    description:  (r.description||'No description').slice(0,220),
-    location_name:r.location_name || r.ward || '',
-    ward:         w,
-    severity:     sev,
-    status:       r.status || 'open',
-    source:       r.source || 'scrape',
-    source_url:   r.source_url || null,
-    latitude:     r.latitude  || null,
-    longitude:    r.longitude || null,
-    timestamp:    ts,
-    created_at:   ts,
-    upvotes:      r.upvotes || Math.floor(Math.random()*30)+1,
-    image_url:    r.image_url || null,
-  };
-}
- 
-function inferWardFromText(text){
-  var t=text.toLowerCase();
-  for(var i=0;i<WARDS.length;i++){ if(t.indexOf(WARDS[i].toLowerCase())>-1) return WARDS[i]; }
-  return WARDS[Math.floor(Math.random()*WARDS.length)];
-}
- 
-function fetchData(manual){
+
+async function fetchData(manual){
   if(fetching) return;
-  fetching=true;
+  fetching = true;
   setFetchUI(true);
-  if(manual) toast('🔍 Fetching live data from Reddit, News, OpenCity…','#3B9EFF');
- 
-  var url = FLASK+'/scrape?sources=csv,kml,reddit,news&limit=100';
-  fetch(url)
-    .then(function(res){
-      if(!res.ok) throw new Error('HTTP '+res.status);
-      return res.json();
-    })
-    .then(function(raw){
-      /* Backend returns {status, issues, leaderboard, clusters, timestamp} */
-      var liveIssues = (raw.issues||[]).map(normaliseIssue);
-      /* Keep citizen reports, replace rest with live data */
-      var citizen = DATA.issues.filter(function(i){ return i.source==='citizen'; });
-      DATA = {
-        issues:      liveIssues.concat(citizen),
-        leaderboard: raw.leaderboard && raw.leaderboard.length ? raw.leaderboard : lbFromIssues(liveIssues),
-        clusters:    raw.clusters || [],
-        timestamp:   raw.timestamp || new Date().toISOString(),
-      };
+  if(manual) toast('🔍 Syncing live data from backend sources…','#3B9EFF');
+
+  try{
+    await api('/scrape/sync?sources=csv,kml,reddit,news', {method:'POST'});
+    await fetchIssuesFromBackend();
+    if(manual) toast('✓ Live issues synced and reloaded','#30D158');
+  }catch(err){
+    console.warn('[fetchData]', err);
+    if(!DATA.issues.length){
+      DATA={issues:SEED,leaderboard:seedLB(),clusters:seedClusters(),timestamp:null};
       syncUI();
       render();
-      if(manual) toast('✓ '+(liveIssues.length)+' live issues loaded ('+(raw.sources_fetched||[]).join(', ')+')', '#30D158');
-    })
-    .catch(function(err){
-      console.warn('[fetchData]', err);
-      /* Use seed if this is first load */
-      if(!DATA.issues.length){
-        DATA={issues:SEED,leaderboard:seedLB(),clusters:seedClusters(),timestamp:null};
-        syncUI(); render();
-      }
-      if(manual) toast('⚠ Backend unavailable — showing demo data. Start: python app.py','#FF8C00');
-    })
-    .finally(function(){
-      fetching=false;
-      setFetchUI(false);
-      resetCD();
-    });
+    }
+    if(manual) toast('⚠ Sync failed — showing saved/demo data','#FF8C00');
+  }finally{
+    fetching = false;
+    setFetchUI(false);
+    resetCD();
+  }
 }
- 
+
+async function checkHealth(){
+  try{
+    await api('/health');
+    BACKEND_OK = true;
+  }catch(err){
+    BACKEND_OK = false;
+    console.warn('[health]', err);
+  }
+}
+
 /* ════════════════════════════════════════
-   AUTO-REFRESH COUNTDOWN
-════════════════════════════════════════ */
+   AUTO REFRESH
+═════════════════════════════════════════ */
 function startCD(){
   clearInterval(cdTimer);
   countdown=REFRESH_SEC;
@@ -709,54 +800,50 @@ function startCD(){
   cdTimer=setInterval(function(){
     countdown--;
     animRBar(countdown/REFRESH_SEC);
-    var el=document.getElementById('ab-stat');
+    var el=e('ab-stat');
     if(el){
       var open=DATA.issues.filter(function(i){ return i.status==='open'; });
       var crit=DATA.issues.filter(function(i){ return i.severity==='critical'&&i.status==='open'; });
       var over=open.filter(function(i){ return dopen(i.created_at)>7; });
-      el.innerHTML='<strong>'+open.length+'</strong> open · <strong>'+crit.length+'</strong> critical · <strong>'+over.length+'</strong> overdue'+(DATA.timestamp?' · ↻ '+countdown+'s':'');
+      el.innerHTML='<strong>'+open.length+'</strong> open · <strong>'+crit.length+'</strong> critical · <strong>'+over.length+'</strong> overdue'+(BACKEND_OK&&DATA.timestamp?' · ↻ '+countdown+'s':'');
     }
-    if(countdown<=0){ countdown=REFRESH_SEC; fetchData(false); }
+    if(countdown<=0){
+      countdown=REFRESH_SEC;
+      if(BACKEND_OK) fetchIssuesFromBackend().catch(function(){});
+    }
   },1000);
 }
 function resetCD(){ countdown=REFRESH_SEC; animRBar(1); }
-function animRBar(pct){
-  var b=document.getElementById('rbar');
-  if(b) b.style.transform='scaleX('+pct+')';
-}
- 
+function animRBar(pct){ var b=e('rbar'); if(b) b.style.transform='scaleX('+pct+')'; }
+
 /* ════════════════════════════════════════
    GLOBAL UI SYNC
-════════════════════════════════════════ */
-function e(id){ return document.getElementById(id); }
- 
+═════════════════════════════════════════ */
 function syncUI(){
   var issues=DATA.issues;
   var open=issues.filter(function(i){ return i.status==='open'; });
   var crit=issues.filter(function(i){ return i.severity==='critical'&&i.status==='open'; });
   var over=open.filter(function(i){ return dopen(i.created_at)>7; });
- 
+
   if(e('tb-open')) e('tb-open').textContent=open.length;
-  if(e('sb-fc'))   e('sb-fc').textContent=issues.length;
- 
-  var ts=DATA.timestamp?'Updated '+fmtd(DATA.timestamp):'civicai.in';
-  var tdata=[
-    ['tk1','tk5',open.length+' open issues'],
-    ['tk2','tk6',crit.length+' critical'],
-    ['tk3','tk7',over.length+' overdue >7d · Bengaluru'],
-    ['tk4','tk8',ts],
-  ];
-  tdata.forEach(function(t){
+  if(e('sb-fc')) e('sb-fc').textContent=issues.length;
+
+  var ts=DATA.timestamp?'Updated '+fmtd(DATA.timestamp):(BACKEND_OK?'Connected':'Demo mode');
+  [['tk1','tk5',open.length+' open issues'],
+   ['tk2','tk6',crit.length+' critical'],
+   ['tk3','tk7',over.length+' overdue >7d · Bengaluru'],
+   ['tk4','tk8',ts]
+  ].forEach(function(t){
     if(e(t[0])) e(t[0]).textContent=t[2];
     if(e(t[1])) e(t[1]).textContent=t[2];
   });
- 
+
   if(e('ab-stat')) e('ab-stat').innerHTML='<strong>'+open.length+'</strong> open · <strong>'+crit.length+'</strong> critical · <strong>'+over.length+'</strong> overdue';
 }
- 
+
 /* ════════════════════════════════════════
    NAVIGATION
-════════════════════════════════════════ */
+═════════════════════════════════════════ */
 function nav(p){
   page=p;
   if(e('tb-title')) e('tb-title').textContent=PAGE_TITLES[p]||'CivicAI';
@@ -770,82 +857,69 @@ function nav(p){
 function toggleSB(){ e('sb').classList.toggle('open'); e('sb-ov').classList.toggle('show'); }
 function closeSB(){ e('sb').classList.remove('open'); e('sb-ov').classList.remove('show'); }
 function onSearch(v){ searchQ=v.toLowerCase(); if(page==='feed') render(); }
- 
+
+/* ════════════════════════════════════════
+   RENDER
+═════════════════════════════════════════ */
 function render(){
   var c=e('content'); if(!c) return;
   c.style.animation='none';
   requestAnimationFrame(function(){
     c.style.animation='fadeUp .3s ease';
-    if(page==='dashboard')  c.innerHTML=pDash();
-    else if(page==='feed')      c.innerHTML=pFeed();
-    else if(page==='map')       c.innerHTML=pMap();
-    else if(page==='hall')      c.innerHTML=pHall();
-    else if(page==='clusters')  c.innerHTML=pClusters();
+    if(page==='dashboard') c.innerHTML=pDash();
+    else if(page==='feed') c.innerHTML=pFeed();
+    else if(page==='map') c.innerHTML=pMap();
+    else if(page==='hall') c.innerHTML=pHall();
+    else if(page==='clusters') c.innerHTML=pClusters();
     var sc=e('scroll'); if(sc) sc.scrollTop=0;
   });
 }
- 
+
 /* ════════════════════════════════════════
-   HTML HELPERS
-════════════════════════════════════════ */
-function pill(txt,col,bg){ return '<span class="pill" style="color:'+col+';background:'+bg+'">'+txt+'</span>'; }
-function spill(s){ return pill(s,sc(s),sbg(s)); }
-function stpill(s){ return s==='resolved'?pill('resolved','#30D158','rgba(48,209,88,0.12)'):pill('open','#FF8C00','rgba(255,140,0,0.12)'); }
-function srcbdg(src){ var m=SRC_META[src]||SRC_META.citizen; return '<span class="spill" style="color:'+m.color+';background:'+m.bg+'">'+m.label+'</span>'; }
-function pinsvg(){ return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'; }
-function xsvg(){ return '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'; }
-function prog(pct,col){ return '<div class="prog"><div class="prog-f" style="width:'+Math.min(pct,100)+'%;background:'+col+'"></div></div>'; }
-function esc(s){ return String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function safeEsc(s){ return String(s||'').replace(/`/g,"'").replace(/\\/g,'\\\\'); }
- 
-/* ════════════════════════════════════════
-   PAGE: DASHBOARD
-════════════════════════════════════════ */
+   PAGES
+═════════════════════════════════════════ */
 function pDash(){
   var issues=DATA.issues;
   var open=issues.filter(function(i){ return i.status==='open'; });
-  var res=issues.filter(function(i){ return i.status==='resolved'; });
+  var res=issues.filter(function(i){ return i.status==='resolved' || i.status==='closed'; });
   var crit=issues.filter(function(i){ return i.severity==='critical'&&i.status==='open'; });
   var over=open.filter(function(i){ return dopen(i.created_at)>7; });
   var avg=open.length?Math.round(open.reduce(function(a,i){ return a+dopen(i.created_at); },0)/open.length):0;
- 
+
   var bySev={critical:0,high:0,medium:0,low:0};
   issues.forEach(function(i){ if(i.status==='open'){ bySev[i.severity]=(bySev[i.severity]||0)+1; } });
- 
+
   var byType={};
   issues.forEach(function(i){ byType[i.issue_type]=(byType[i.issue_type]||0)+1; });
   var topTypes=Object.entries(byType).sort(function(a,b){ return b[1]-a[1]; }).slice(0,6);
   var maxType=topTypes.length?topTypes[0][1]:1;
- 
+
   var bySrc={};
   issues.forEach(function(i){ bySrc[i.source]=(bySrc[i.source]||0)+1; });
- 
+
   var oldest=[].concat(open).sort(function(a,b){ return dopen(b.created_at)-dopen(a.created_at); }).slice(0,6);
   var lb=DATA.leaderboard.length?DATA.leaderboard:lbFromIssues(issues);
   var maxLb=lb.length?lb[0].count:1;
   var topUV=[].concat(issues).sort(function(a,b){ return b.upvotes-a.upvotes; }).slice(0,6);
   var ts=DATA.timestamp;
   var h='';
- 
-  /* header */
+
   h+='<div class="sh"><div><div class="sh-title">Civic Accountability Dashboard</div>';
-  h+='<div class="sh-sub">Real-time data · Bengaluru · '+new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</div></div>';
+  h+='<div class="sh-sub">Persistent issue tracking · Bengaluru · '+new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</div></div>';
   h+='<div style="display:flex;align-items:center;gap:8px;">';
-  if(ts) h+='<div class="lts">✓ Live · '+fmtd(ts)+'</div>';
+  if(ts) h+='<div class="lts">✓ '+(BACKEND_OK?'Backend live':'Demo')+' · '+fmtd(ts)+'</div>';
   h+='<div style="font-size:11px;color:var(--muted)">↻ '+REFRESH_SEC+'s</div></div></div>';
- 
-  /* alert bars */
+
   if(bySev.critical>0) h+='<div class="alert crit"><span class="alert-ico">🚨</span><div class="alert-txt"><strong style="color:var(--red)">'+bySev.critical+' CRITICAL</strong> issues require immediate action across Bengaluru wards</div><div class="alert-cnt" style="color:var(--red)">'+bySev.critical+'</div></div>';
-  if(bySev.high>2)     h+='<div class="alert high"><span class="alert-ico">⚠️</span><div class="alert-txt"><strong style="color:var(--orange)">'+bySev.high+' HIGH</strong> severity issues open — escalation recommended</div><div class="alert-cnt" style="color:var(--orange)">'+bySev.high+'</div></div>';
- 
-  /* stat grid */
+  if(bySev.high>2) h+='<div class="alert high"><span class="alert-ico">⚠️</span><div class="alert-txt"><strong style="color:var(--orange)">'+bySev.high+' HIGH</strong> severity issues open — escalation recommended</div><div class="alert-cnt" style="color:var(--orange)">'+bySev.high+'</div></div>';
+
   var stats=[
-    {n:open.length,   l:'Open Issues',   hint:'Need attention',    acc:'var(--orange)',tr:'active'},
-    {n:res.length,    l:'Resolved',      hint:'Closed success.',   acc:'var(--green)', tr:'↑ good'},
-    {n:crit.length,   l:'Critical',      hint:'Immediate action',  acc:'var(--red)',   tr:'⚠ urgent'},
-    {n:avg,           l:'Avg Days Open', hint:'Resolution lag',    acc:'var(--yellow)',tr:'SLA:30d'},
-    {n:over.length,   l:'Overdue &gt;7d',hint:'SLA breached',      acc:'var(--red)',   tr:'SLA !'},
-    {n:issues.length, l:'Total Reports', hint:'All sources',       acc:'var(--teal)',  tr:'↑ all'}
+    {n:open.length,l:'Open Issues',hint:'Need attention',acc:'var(--orange)',tr:'active'},
+    {n:res.length,l:'Resolved',hint:'Closed success.',acc:'var(--green)',tr:'↑ good'},
+    {n:crit.length,l:'Critical',hint:'Immediate action',acc:'var(--red)',tr:'⚠ urgent'},
+    {n:avg,l:'Avg Days Open',hint:'Resolution lag',acc:'var(--yellow)',tr:'SLA'},
+    {n:over.length,l:'Overdue >7d',hint:'SLA breached',acc:'var(--red)',tr:'SLA !'},
+    {n:issues.length,l:'Total Reports',hint:BACKEND_OK?'Saved + synced':'Demo / fallback',acc:'var(--teal)',tr:'↑ all'}
   ];
   h+='<div class="stat-grid">';
   stats.forEach(function(s,i){
@@ -856,11 +930,9 @@ function pDash(){
     h+='<div class="sc-hint">'+s.hint+'</div></div>';
   });
   h+='</div>';
- 
-  /* 2-col */
+
   h+='<div class="g2">';
- 
-  /* LEFT: oldest unresolved timeline */
+
   h+='<div class="pan"><div class="ph"><div class="pt">🔥 Oldest Unresolved Issues</div><div class="sh-act" onclick="nav(\'feed\')">View all →</div></div><div class="tl">';
   oldest.forEach(function(issue,idx){
     var days=dopen(issue.created_at);
@@ -881,11 +953,8 @@ function pDash(){
   });
   if(!oldest.length) h+='<div style="text-align:center;padding:30px;color:var(--muted)">No open issues</div>';
   h+='</div></div>';
- 
-  /* RIGHT column */
+
   h+='<div style="display:flex;flex-direction:column;gap:13px;">';
- 
-  /* Ward leaderboard from backend */
   h+='<div class="pan"><div class="ph"><div class="pt">📊 Ward Issue Count</div><div class="sh-act" onclick="nav(\'map\')">Heat Map →</div></div>';
   var rankCols=['#FFD700','#C0C0C0','#CD7F32'];
   lb.slice(0,8).forEach(function(w,i){
@@ -900,8 +969,7 @@ function pDash(){
   });
   if(!lb.length) h+='<div style="text-align:center;padding:20px;color:var(--muted)">No data yet</div>';
   h+='</div>';
- 
-  /* Issue type breakdown */
+
   h+='<div class="pan"><div class="ph"><div class="pt">Issues by Type</div></div>';
   topTypes.forEach(function(t){
     var pct=Math.round(t[1]/maxType*100);
@@ -911,8 +979,7 @@ function pDash(){
     h+='</div>';
   });
   h+='</div>';
- 
-  /* Data sources */
+
   h+='<div class="pan"><div class="ph"><div class="pt">Data Sources</div></div>';
   Object.entries(bySrc).forEach(function(entry){
     var src=entry[0], cnt=entry[1];
@@ -924,10 +991,8 @@ function pDash(){
     h+='</div>';
   });
   h+='</div>';
- 
-  h+='</div></div>';/* end right col + g2 */
- 
-  /* MOST UPVOTED */
+  h+='</div></div>';
+
   h+='<div class="pan" style="margin-bottom:14px"><div class="ph"><div class="pt">⬆ Community Pressure — Most Upvoted</div><div class="sh-act" onclick="nav(\'feed\')">See all →</div></div>';
   h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">';
   topUV.forEach(function(issue){
@@ -941,17 +1006,13 @@ function pDash(){
     h+='</div>';
   });
   h+='</div></div>';
- 
   return h;
 }
- 
-/* ════════════════════════════════════════
-   PAGE: FEED
-════════════════════════════════════════ */
+
 function pFeed(){
   var filtered=DATA.issues.filter(function(i){
     if(feedFilter==='open'&&i.status!=='open') return false;
-    if(feedFilter==='resolved'&&i.status!=='resolved') return false;
+    if(feedFilter==='resolved'&&i.status!=='resolved'&&i.status!=='closed') return false;
     if(feedFilter==='critical'&&i.severity!=='critical') return false;
     if(feedFilter==='high'&&i.severity!=='high') return false;
     if(feedWard&&i.ward!==feedWard) return false;
@@ -961,30 +1022,29 @@ function pFeed(){
   var liveCount=DATA.issues.filter(function(i){ return i.source!=='citizen'&&i.source!=='seed'; }).length;
   var ts=DATA.timestamp;
   var h='';
- 
+
   h+='<div class="sh"><div><div class="sh-title">Live Issue Feed</div>';
-  h+='<div class="sh-sub">'+filtered.length+' issues shown · '+liveCount+' from live scrape'+(ts?' · Updated '+fmtd(ts):'')+'</div></div>';
+  h+='<div class="sh-sub">'+filtered.length+' issues shown · '+liveCount+' from synced sources'+(ts?' · Updated '+fmtd(ts):'')+'</div></div>';
   if(ts) h+='<div class="lts">✓ '+fmtd(ts)+'</div>';
   h+='</div>';
- 
+
   h+='<div class="frow">';
   ['all','open','resolved','critical','high'].forEach(function(f){
     h+='<div class="fc '+(feedFilter===f?'on':'')+'" onclick="feedFilter=\''+f+'\';render()">'+f.charAt(0).toUpperCase()+f.slice(1)+'</div>';
   });
-  h+='<select class="fsel" onchange="feedWard=this.value;render()"><option value="">All Wards (198 BBMP)</option>';
+  h+='<select class="fsel" onchange="feedWard=this.value;render()"><option value="">All Wards</option>';
   Object.entries(WARDS_BY_ZONE).forEach(function(zEntry){
     h+='<optgroup label="── '+zEntry[0]+' ──">';
-    zEntry[1].forEach(function(w){ h+='<option value="'+w+'"'+(feedWard===w?' selected':'')+'>'+w+'</option>'; });
+    zEntry[1].forEach(function(w){ h+='<option value="'+esc(w)+'"'+(feedWard===w?' selected':'')+'>'+esc(w)+'</option>'; });
     h+='</optgroup>';
   });
   h+='</select>';
   h+='<div style="margin-left:auto;font-size:11px;color:var(--muted)">'+filtered.length+' / '+DATA.issues.length+'</div>';
   h+='</div>';
- 
+
   h+='<div class="tl">';
   if(!filtered.length) h+='<div style="text-align:center;padding:40px;color:var(--muted)">No issues match the current filter</div>';
   filtered.forEach(function(issue,idx){
-    var days=dopen(issue.created_at);
     h+='<div class="tl-item" style="animation-delay:'+Math.min(idx*.04,.4)+'s" onclick="openDetail(\''+issue.id+'\')">';
     h+='<div class="tl-dot" style="background:'+sc(issue.severity)+'"></div>';
     h+='<div class="tl-card" style="border-left-color:'+sc(issue.severity)+'">';
@@ -995,7 +1055,7 @@ function pFeed(){
     if(issue.image_url) h+='<img src="'+issue.image_url+'" style="width:100%;max-height:140px;object-fit:cover;border-radius:7px;margin:7px 0">';
     h+='<div class="tl-desc">'+esc(issue.description)+'</div>';
     h+='<div class="tl-foot">';
-    h+='<div class="tl-ts">📅 '+fmtd(issue.created_at)+(issue.latitude?' · 📍 '+issue.latitude.toFixed(4)+','+issue.longitude.toFixed(4):'')+'</div>';
+    h+='<div class="tl-ts">📅 '+fmtd(issue.created_at)+(issue.latitude?' · 📍 '+Number(issue.latitude).toFixed(4)+','+Number(issue.longitude).toFixed(4):'')+'</div>';
     h+='<div style="display:flex;gap:7px">';
     h+='<button onclick="event.stopPropagation();upvote(\''+issue.id+'\',this)" style="display:flex;align-items:center;gap:3px;background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.2);border-radius:5px;padding:3px 8px;color:var(--teal);font-size:11px;font-weight:700;">▲ '+issue.upvotes+'</button>';
     h+='<button onclick="event.stopPropagation();openEsc(\''+issue.id+'\')" style="display:flex;align-items:center;gap:3px;background:var(--faint);border:1px solid var(--b);border-radius:5px;padding:3px 8px;color:var(--muted);font-size:11px;">⬆ Share</button>';
@@ -1004,10 +1064,7 @@ function pFeed(){
   h+='</div>';
   return h;
 }
- 
-/* ════════════════════════════════════════
-   PAGE: MAP
-════════════════════════════════════════ */
+
 function pMap(){
   var lb=DATA.leaderboard.length?DATA.leaderboard:lbFromIssues(DATA.issues);
   var wc={};
@@ -1016,18 +1073,14 @@ function pMap(){
   var geoIssues=DATA.issues.filter(function(i){ return i.latitude&&i.longitude; }).slice(0,12);
   var ts=DATA.timestamp;
   var h='';
- 
+
   h+='<div class="sh"><div><div class="sh-title">Ward Heat Map</div>';
   h+='<div class="sh-sub">Issue density by ward · '+DATA.issues.length+' total datapoints'+(ts?' · '+fmtd(ts):'')+'</div></div>';
   if(ts) h+='<div class="lts">✓ Live · '+fmtd(ts)+'</div>';
   h+='</div>';
- 
-  h+='<div class="g2">';
- 
-  /* HEATMAP */
-  h+='<div>';
+
+  h+='<div class="g2"><div>';
   h+='<div class="pan" style="margin-bottom:13px"><div class="ph"><div class="pt">Ward Intensity Grid</div><div style="font-size:11px;color:var(--muted)">Click ward to filter feed</div></div>';
-  /* Show top-20 by issue count + any ward with >0 issues, max 40 cells */
   var heatWards = WARDS.slice().sort(function(a,b){ return (wc[b]||0)-(wc[a]||0); }).slice(0,40);
   h+='<div class="heat-grid">';
   heatWards.forEach(function(w){
@@ -1035,8 +1088,8 @@ function pMap(){
     var bg=pct>.7?'#FF3355':pct>.45?'#FF8C00':pct>.2?'#FFD60A':'rgba(255,255,255,0.04)';
     var tc=pct>.2?'#fff':'var(--muted)';
     var sel=wardSel===w;
-    h+='<div class="heat-cell'+(sel?' sel':'')+'" style="background:'+bg+';opacity:'+(c>0?.9:.25)+'" onclick="selWard(\''+w+'\')" title="'+w+': '+c+' issues">';
-    h+='<div class="wn" style="color:'+tc+'">'+w+'</div>';
+    h+='<div class="heat-cell'+(sel?' sel':'')+'" style="background:'+bg+';opacity:'+(c>0?.9:.25)+'" onclick="selWard(\''+safeEsc(w)+'\')" title="'+esc(w)+': '+c+' issues">';
+    h+='<div class="wn" style="color:'+tc+'">'+esc(w)+'</div>';
     if(c>0) h+='<div class="wc" style="color:#fff">'+c+'</div>';
     h+='</div>';
   });
@@ -1048,43 +1101,38 @@ function pMap(){
   h+='</div>';
   if(wardSel){
     h+='<div style="margin-top:12px;padding:8px 12px;background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.18);border-radius:8px;font-size:12px;color:var(--teal);display:flex;justify-content:space-between;align-items:center">';
-    h+='<span>Filtered: <strong>'+wardSel+'</strong></span><button onclick="wardSel=\'\';feedWard=\'\';render()" style="background:none;border:none;color:var(--teal);font-size:12px;font-weight:700;cursor:pointer">Clear ✕</button></div>';
+    h+='<span>Filtered: <strong>'+esc(wardSel)+'</strong></span><button onclick="wardSel=\'\';feedWard=\'\';render()" style="background:none;border:none;color:var(--teal);font-size:12px;font-weight:700;cursor:pointer">Clear ✕</button></div>';
   }
   h+='</div>';
- 
-  /* GEO ISSUES */
+
   if(geoIssues.length){
     h+='<div class="pan"><div class="ph"><div class="pt">📍 Geo-tagged Issues</div><div class="pm">'+geoIssues.length+' with coordinates</div></div>';
-    h+='<div style="font-size:11px;color:var(--muted);margin-bottom:10px">Lat/Lon from backend · Full interactive map in production</div>';
+    h+='<div style="font-size:11px;color:var(--muted);margin-bottom:10px">Coordinates from backend</div>';
     geoIssues.forEach(function(i,idx){
       h+='<div style="display:flex;gap:8px;align-items:center;padding:7px 0;border-bottom:'+(idx<geoIssues.length-1?'1px solid var(--b)':'none')+';cursor:pointer" onclick="openDetail(\''+i.id+'\')">';
       h+='<div style="width:6px;height:6px;border-radius:50%;background:'+sc(i.severity)+';flex-shrink:0"></div>';
       h+='<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(i.issue_type)+' — '+esc(i.ward)+'</div>';
-      h+='<div style="font-size:10.5px;color:var(--muted);font-family:\'JetBrains Mono\',monospace">'+i.latitude.toFixed(5)+', '+i.longitude.toFixed(5)+'</div></div>';
+      h+='<div style="font-size:10.5px;color:var(--muted);font-family:\'JetBrains Mono\',monospace">'+Number(i.latitude).toFixed(5)+', '+Number(i.longitude).toFixed(5)+'</div></div>';
       h+=spill(i.severity)+'</div>';
     });
     h+='</div>';
   }
   h+='</div>';
- 
-  /* RIGHT */
+
   h+='<div style="display:flex;flex-direction:column;gap:13px;">';
- 
-  /* Ward rankings */
   h+='<div class="pan"><div class="ph"><div class="pt">Ward Rankings</div></div>';
   lb.slice(0,10).forEach(function(w,i){
     var pct=Math.round(w.count/max*100);
     var col=pct>75?'var(--red)':pct>45?'var(--orange)':pct>20?'var(--yellow)':'var(--green)';
     var rc=i===0?'#FFD700':i===1?'#C0C0C0':i===2?'#CD7F32':'var(--muted)';
-    h+='<div class="lbi" style="cursor:pointer" onclick="selWard(\''+w.ward+'\')">';
+    h+='<div class="lbi" style="cursor:pointer" onclick="selWard(\''+safeEsc(w.ward)+'\')">';
     h+='<div class="lb-rank" style="background:'+(i<3?rc+'20':'var(--faint)')+';border:1.5px solid '+(i<3?rc:'var(--b)')+';color:'+(i<3?rc:'var(--muted)')+'">'+(i+1)+'</div>';
     h+='<div class="lb-ward" style="font-size:12px">'+esc(w.ward)+'</div>';
     h+='<div class="lb-track"><div class="lb-fill" style="width:'+pct+'%;background:'+col+'"></div></div>';
     h+='<div class="lb-cnt" style="color:'+col+'">'+w.count+'</div></div>';
   });
   h+='</div>';
- 
-  /* Severity distribution */
+
   h+='<div class="pan"><div class="ph"><div class="pt">Severity Distribution</div></div>';
   ['critical','high','medium','low'].forEach(function(s){
     var cnt=DATA.issues.filter(function(i){ return i.severity===s&&i.status==='open'; }).length;
@@ -1095,47 +1143,48 @@ function pMap(){
     h+=prog(pct,sc(s))+'</div>';
   });
   h+='</div>';
- 
+
   h+='</div></div>';
   return h;
 }
- 
-/* ════════════════════════════════════════
-   PAGE: HALL
-════════════════════════════════════════ */
+
 function pHall(){
-  var officers=Object.entries(OFFICIALS).map(function(entry){
-    var ward=entry[0], off=entry[1];
+  var wardNames = Object.keys(WARD_META).length ? Object.keys(WARD_META) : Object.keys(OFFICIALS);
+
+  var officers=wardNames.map(function(ward){
+    var off=getOfficerForWard(ward);
     var wi=DATA.issues.filter(function(i){ return i.ward===ward; });
     var open=wi.filter(function(i){ return i.status==='open'; });
     var crit=open.filter(function(i){ return i.severity==='critical'; }).length;
     var maxD=open.length?Math.max.apply(null,open.map(function(i){ return dopen(i.created_at); })):0;
     var liveOpen=open.length;
-    var fame=off.res*8-Math.max(off.pend,liveOpen)*5-Math.floor(off.avg*1.5);
-    var shame=Math.max(off.pend,liveOpen)*6+crit*10+maxD+off.avg*2-off.res*3;
-    return {ward:ward,av:off.av,bbmp:off.bbmp,dept:off.dept,mla:off.mla,res:off.res,pend:off.pend,avg:off.avg,liveOpen:liveOpen,crit:crit,maxD:maxD,fame:fame,shame:shame};
+    var resCount = off.res || wi.filter(function(i){ return i.status==='resolved'||i.status==='closed'; }).length;
+    var pendCount = off.pend || liveOpen;
+    var avgDays = off.avg || (open.length ? Math.round(open.reduce(function(a,i){ return a+dopen(i.created_at); },0)/open.length) : 0);
+    var fame=resCount*8-Math.max(pendCount,liveOpen)*5-Math.floor(avgDays*1.5);
+    var shame=Math.max(pendCount,liveOpen)*6+crit*10+maxD+avgDays*2-resCount*3;
+    return {
+      ward:ward,av:off.av || 'BB',bbmp:off.bbmp,dept:off.dept,mla:off.mla,
+      res:resCount,pend:pendCount,avg:avgDays,liveOpen:liveOpen,crit:crit,maxD:maxD,
+      fame:fame,shame:shame
+    };
   });
+
   var list=[].concat(officers).sort(function(a,b){ return hallMode==='fame'?b.fame-a.fame:b.shame-a.shame; });
   var pCols=hallMode==='fame'?['#FFD700','#C0C0C0','#CD7F32']:['#FF3355','#FF6B35','#FF8C00'];
-  var top3=list.slice(0,3), rest=list.slice(3);
+  var top3=list.slice(0,3), rest=list.slice(3,12);
   var slaBreach=DATA.issues.filter(function(i){ return i.status==='open'&&dopen(i.created_at)>14; }).sort(function(a,b){ return dopen(b.created_at)-dopen(a.created_at); });
   var h='';
- 
+
   h+='<div class="sh"><div><div class="sh-title">'+(hallMode==='fame'?'🏆 Hall of Fame':'💀 Hall of Shame')+'</div>';
-  h+='<div class="sh-sub">'+(hallMode==='fame'?'Officers resolving issues fastest':'Officers with most unresolved & overdue issues')+' · Live data</div></div></div>';
- 
+  h+='<div class="sh-sub">'+(hallMode==='fame'?'Best resolving wards / mapped owners':'Wards with most unresolved & overdue issues')+' · Live data</div></div></div>';
+
   h+='<div class="tabrow" style="max-width:340px;margin-bottom:20px">';
   h+='<button class="tbtn'+(hallMode==='fame'?' on':'')+'" onclick="hallMode=\'fame\';render()" style="'+(hallMode==='fame'?'background:linear-gradient(135deg,rgba(0,200,150,.15),rgba(59,158,255,.1));color:var(--teal)':'')+'" >🏆 Hall of Fame</button>';
   h+='<button class="tbtn'+(hallMode==='shame'?' on':'')+'" onclick="hallMode=\'shame\';render()" style="'+(hallMode==='shame'?'background:rgba(255,51,85,.1);color:var(--red)':'')+'" >💀 Hall of Shame</button>';
   h+='</div>';
- 
-  h+='<div class="g2">';
- 
-  /* LEFT: podium + list */
-  h+='<div>';
-  h+='<div class="pan" style="margin-bottom:13px">';
- 
-  /* Podium */
+
+  h+='<div class="g2"><div><div class="pan" style="margin-bottom:13px">';
   h+='<div class="pod-wrap">';
   [1,0,2].forEach(function(idx){
     var o=top3[idx]; if(!o) return;
@@ -1143,7 +1192,7 @@ function pHall(){
     var metric=hallMode==='fame'?o.res:(o.liveOpen||o.pend);
     h+='<div class="pod-col">';
     if(isFirst) h+='<div style="font-size:20px;margin-bottom:5px">'+(hallMode==='fame'?'🥇':'💀')+'</div>';
-    h+='<div class="pod-av" style="width:'+(isFirst?52:42)+'px;height:'+(isFirst?52:42)+'px;font-size:'+(isFirst?17:14)+'px;background:'+col+'18;border:2.5px solid '+col+';color:'+col+'">'+o.av+'</div>';
+    h+='<div class="pod-av" style="width:'+(isFirst?52:42)+'px;height:'+(isFirst?52:42)+'px;font-size:'+(isFirst?17:14)+'px;background:'+col+'18;border:2.5px solid '+col+';color:'+col+'">'+esc(o.av)+'</div>';
     h+='<div style="font-size:12px;font-weight:700;color:var(--text);margin-top:5px;line-height:1.3">'+esc(o.bbmp)+'</div>';
     h+='<div style="font-size:10px;color:var(--muted)">'+esc(o.ward)+'</div>';
     h+='<div class="pod-box" style="background:'+col+'18;border:1px solid '+col+'40">';
@@ -1152,34 +1201,29 @@ function pHall(){
     h+='<div class="pod-s">'+(hallMode==='fame'?'resolved':'pending')+'</div></div></div>';
   });
   h+='</div>';
- 
-  /* Officer list */
-  h+='<div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:16px 0 10px">Full Rankings (Live)</div>';
+
+  h+='<div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:16px 0 10px">Rankings</div>';
   rest.forEach(function(o,i){
-    var col=pCols[i]||'var(--muted)';
     var score=Math.max(hallMode==='fame'?o.fame:o.shame,0);
     var metric=hallMode==='fame'?o.res+' resolved · avg '+o.avg+'d':(o.liveOpen||o.pend)+' pending · '+o.crit+' critical · max '+o.maxD+'d';
     h+='<div class="orow">';
     h+='<div class="lb-rank" style="background:var(--faint);border:1.5px solid var(--b);color:var(--muted);width:24px;height:24px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">'+(i+4)+'</div>';
-    h+='<div class="oav" style="background:'+(hallMode==='shame'?'rgba(255,51,85,.12)':'rgba(0,200,150,.1)')+';border:2px solid '+(i<3?col:'var(--b)')+';color:'+(i<3?col:'var(--muted)')+'">'+o.av+'</div>';
+    h+='<div class="oav" style="background:'+(hallMode==='shame'?'rgba(255,51,85,.12)':'rgba(0,200,150,.1)')+';border:2px solid var(--b);color:var(--muted)">'+esc(o.av)+'</div>';
     h+='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">'+esc(o.bbmp)+'</div>';
     h+='<div style="font-size:11px;color:var(--muted)">'+esc(o.dept)+' · '+esc(o.ward)+'</div>';
     h+='<div style="font-size:11px;color:var(--muted);margin-top:1px">'+metric+'</div></div>';
     h+='<div style="font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:700;color:'+(hallMode==='fame'?'var(--green)':'var(--red)')+';text-align:right">'+score+'<div style="font-size:9px;color:var(--muted);font-weight:400">pts</div></div></div>';
   });
   h+='</div></div>';
- 
-  /* RIGHT */
+
   h+='<div style="display:flex;flex-direction:column;gap:13px;">';
- 
-  /* SLA Breach from real data */
   h+='<div class="pan" style="background:rgba(255,51,85,.03);border-color:rgba(255,51,85,.13)">';
   h+='<div class="ph"><div class="pt" style="color:var(--red)">⚠ SLA Breached — Live Data</div><div class="pm">'+slaBreach.length+' issues &gt;14d</div></div>';
   if(!slaBreach.length){
     h+='<div style="text-align:center;padding:20px;color:var(--muted)">✓ No issues currently breaching SLA</div>';
   } else {
     slaBreach.slice(0,6).forEach(function(issue,i){
-      var off=OFFICIALS[issue.ward]||{bbmp:'BBMP Officer',dept:'—'};
+      var off=getOfficerForWard(issue.ward);
       h+='<div style="padding:9px 0;border-bottom:'+(i<5?'1px solid rgba(255,51,85,.1)':'none')+'">';
       h+='<div style="display:flex;justify-content:space-between;align-items:flex-start">';
       h+='<div style="flex:1;min-width:0">';
@@ -1192,40 +1236,34 @@ function pHall(){
     });
   }
   h+='</div>';
- 
-  /* Ward resolution rate */
+
   h+='<div class="pan"><div class="ph"><div class="pt">Ward Resolution Rate</div></div>';
-  Object.entries(OFFICIALS).slice(0,7).forEach(function(entry){
-    var ward=entry[0], off=entry[1];
-    var liveOpen=DATA.issues.filter(function(i){ return i.ward===ward&&i.status==='open'; }).length;
-    var total=off.res+Math.max(off.pend,liveOpen);
-    var rate=total>0?Math.round(off.res/total*100):0;
+  officers.slice(0,7).forEach(function(o){
+    var total=o.res+Math.max(o.pend,o.liveOpen);
+    var rate=total>0?Math.round(o.res/total*100):0;
     var col=rate>70?'var(--green)':rate>40?'var(--orange)':'var(--red)';
     h+='<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:3px">';
-    h+='<span style="color:var(--sub);font-weight:500">'+ward+'</span>';
+    h+='<span style="color:var(--sub);font-weight:500">'+esc(o.ward)+'</span>';
     h+='<span style="color:'+col+';font-family:\'JetBrains Mono\',monospace;font-weight:700">'+rate+'%</span></div>';
     h+=prog(rate,col)+'</div>';
   });
   h+='</div>';
- 
+
   h+='</div></div>';
   return h;
 }
- 
-/* ════════════════════════════════════════
-   PAGE: CLUSTERS
-════════════════════════════════════════ */
+
 function pClusters(){
   var clusters=DATA.clusters.length?DATA.clusters:seedClusters();
   var h='';
   h+='<div class="sh"><div><div class="sh-title">Issue Clusters</div>';
   h+='<div class="sh-sub">Similar issues grouped · '+clusters.length+' cluster'+(clusters.length!==1?'s':'')+' identified</div></div></div>';
- 
+
   if(!clusters.length){
     h+='<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:12px">🔍</div>No clusters yet — fetch live data to see groupings</div>';
     return h;
   }
- 
+
   clusters.forEach(function(cl,ci){
     var items=cl.items||[];
     var sev=items.length?items[0].severity:'medium';
@@ -1249,20 +1287,21 @@ function pClusters(){
   });
   return h;
 }
- 
+
 /* ════════════════════════════════════════
    DETAIL MODAL
-════════════════════════════════════════ */
+═════════════════════════════════════════ */
 function openDetail(id){
   var issue=DATA.issues.find(function(i){ return i.id===id; });
   if(!issue) return;
-  var off=OFFICIALS[issue.ward]||{mla:'Local MLA',bbmp:'BBMP Officer',dept:'Public Works'};
+  var off=getOfficerForWard(issue.ward);
+  var meta=WARD_META[issue.ward] || {};
   var days=dopen(issue.created_at);
   var steps=['Submitted','Verified','Assigned','In Progress','Resolved'];
-  var sIdx=issue.status==='resolved'?4:Math.min(1+Math.floor(days/6),3);
+  var sIdx=issue.status==='resolved'||issue.status==='closed'?4:Math.min(1+Math.floor(days/6),3);
   var tweet='🚨 '+days+'d UNRESOLVED — '+issue.ward+', Bengaluru\n\n'+issue.issue_type+': '+issue.description.slice(0,100)+'\n\nResponsible: '+off.mla+' (MLA) · BBMP: '+off.bbmp+'\n\n#'+issue.ward.replace(/\s/g,'')+' #CivicAI #BBMP #Bengaluru';
   var wa='*CivicAI Alert 🚨*\n\n*'+issue.issue_type+'* in *'+issue.ward+'* — *'+days+' days unresolved*\n\n📍 '+issue.location_name+'\n'+issue.description.slice(0,120)+'\n\nOfficer: *'+off.bbmp+'* ('+off.dept+')\nMLA: *'+off.mla+'*\n\nTrack at civicai.in';
- 
+
   var h='<div class="ov" id="det-ov" onclick="if(event.target===this)this.remove()">';
   h+='<div class="modal">';
   h+='<div class="mhead"><div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--muted);letter-spacing:2px">#'+issue.id+' · '+(issue.source||'').toUpperCase()+'</div>';
@@ -1271,8 +1310,7 @@ function openDetail(id){
   if(issue.image_url) h+='<img src="'+issue.image_url+'" style="width:100%;border-radius:10px;margin-bottom:14px;max-height:190px;object-fit:cover">';
   h+='<div style="font-size:21px;font-weight:800;color:var(--text);margin-bottom:4px">'+esc(issue.issue_type)+'</div>';
   h+='<div style="font-size:12.5px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:4px">'+pinsvg()+' '+esc(issue.location_name||issue.ward)+'</div>';
- 
-  /* Step tracker */
+
   h+='<div style="display:flex;align-items:flex-start;margin-bottom:18px">';
   steps.forEach(function(s,i){
     h+='<div style="flex:1;display:flex;flex-direction:column;align-items:center">';
@@ -1284,56 +1322,57 @@ function openDetail(id){
     h+='<div style="font-size:9px;color:'+(i<=sIdx?'var(--sub)':'var(--muted)')+';margin-top:4px;text-align:center">'+s+'</div></div>';
   });
   h+='</div>';
- 
+
   h+='<div style="display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap">'+spill(issue.severity)+' '+stpill(issue.status);
   if(issue.source&&issue.source!=='seed') h+=' '+srcbdg(issue.source);
   h+='</div>';
- 
-  /* Timestamp from real data */
-  h+='<div style="background:var(--faint);border-radius:8px;padding:9px 12px;margin-bottom:12px;font-family:\'JetBrains Mono\',monospace;font-size:11.5px;color:var(--muted)">📅 Reported: '+fmtd(issue.created_at)+(issue.latitude?'<br>📍 '+issue.latitude.toFixed(5)+', '+issue.longitude.toFixed(5):'')+'</div>';
- 
+
+  h+='<div style="background:var(--faint);border-radius:8px;padding:9px 12px;margin-bottom:12px;font-family:\'JetBrains Mono\',monospace;font-size:11.5px;color:var(--muted)">📅 Reported: '+fmtd(issue.created_at)+(issue.latitude?'<br>📍 '+Number(issue.latitude).toFixed(5)+', '+Number(issue.longitude).toFixed(5):'')+'</div>';
   h+='<div style="font-size:13.5px;color:var(--sub);line-height:1.55;margin-bottom:16px">'+esc(issue.description)+'</div>';
   if(issue.source_url) h+='<a href="'+issue.source_url+'" target="_blank" rel="noreferrer" style="font-size:12px;color:var(--blue);display:block;margin-bottom:14px">🔗 View original source ↗</a>';
- 
-  /* Accountability */
+
   h+='<div style="border-top:1px solid var(--b);padding-top:14px;margin-bottom:14px">';
   h+='<div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:9px">Policy Accountability</div>';
-  [['Responsible MLA',off.mla],['Department',off.dept],['Officer in Charge',off.bbmp],['Mandated SLA','Within 30 days']].forEach(function(r){
+  [
+    ['Responsible MLA',off.mla],
+    ['Department',off.dept],
+    ['Officer in Charge',off.bbmp],
+    ['Zone', meta.zone || issue.zone || '—'],
+    ['Constituency', meta.constituency || '—']
+  ].forEach(function(r){
     h+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--b);font-size:12.5px">';
     h+='<span style="color:var(--teal)">'+r[0]+'</span><span style="color:var(--text);font-weight:600">'+esc(r[1])+'</span></div>';
   });
   h+='</div>';
- 
-  /* SLA progress */
+
   h+='<div style="background:'+(days>30?'rgba(255,51,85,.07)':'rgba(255,140,0,.06)')+';border-radius:9px;padding:10px;font-size:12px;color:var(--sub);margin-bottom:10px">';
   h+='⏱ <strong style="color:'+(days>30?'var(--red)':'var(--orange)')+'">Elapsed: '+days+' days</strong>'+(days>30?' · ⚠ SLA BREACHED — escalate now':'');
   h+='</div>';
   h+='<div class="prog" style="margin-bottom:16px"><div class="prog-f" style="width:'+Math.min(days/30*100,100)+'%;background:'+(days>30?'var(--red)':'linear-gradient(90deg,var(--teal),var(--orange))')+'"></div></div>';
- 
-  /* Actions */
+
   h+='<div style="display:flex;gap:8px;margin-bottom:8px">';
   h+='<button onclick="upvote(\''+issue.id+'\',this)" style="flex:1;padding:9px;border-radius:8px;background:rgba(0,200,150,.08);border:1px solid rgba(0,200,150,.18);color:var(--teal);font-size:13px;font-weight:700;cursor:pointer">▲ Upvote ('+issue.upvotes+')</button>';
-  h+='<button onclick="cp(\''+tweet.replace(/\n/g,'\\n').replace(/'/g,"\\'")+'\')" style="flex:1;padding:9px;border-radius:8px;background:rgba(29,161,242,.08);border:1px solid rgba(29,161,242,.18);color:#1DA1F2;font-size:13px;font-weight:700;cursor:pointer">𝕏 Copy Tweet</button>';
+  h+='<button onclick="cp(\''+safeEsc(tweet)+'\')" style="flex:1;padding:9px;border-radius:8px;background:rgba(29,161,242,.08);border:1px solid rgba(29,161,242,.18);color:#1DA1F2;font-size:13px;font-weight:700;cursor:pointer">𝕏 Copy Tweet</button>';
   h+='</div>';
-  h+='<button onclick="cp(\''+wa.replace(/\n/g,'\\n').replace(/'/g,"\\'")+'\')" style="width:100%;padding:9px;border-radius:8px;background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.18);color:#25D166;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">💬 Copy WhatsApp</button>';
+  h+='<button onclick="cp(\''+safeEsc(wa)+'\')" style="width:100%;padding:9px;border-radius:8px;background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.18);color:#25D166;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">💬 Copy WhatsApp</button>';
   h+='<button onclick="document.getElementById(\'det-ov\').remove();openEsc(\''+issue.id+'\')" style="width:100%;padding:11px;border-radius:10px;background:linear-gradient(135deg,var(--red),var(--orange));border:none;color:#fff;font-size:14px;font-weight:800;cursor:pointer">⚡ Escalate to Officials</button>';
   h+='</div></div></div>';
- 
+
   document.body.insertAdjacentHTML('beforeend',h);
 }
- 
+
 /* ════════════════════════════════════════
    ESCALATE MODAL
-════════════════════════════════════════ */
+═════════════════════════════════════════ */
 function openEsc(id){
   var issue=DATA.issues.find(function(i){ return i.id===id; });
   if(!issue) return;
-  var off=OFFICIALS[issue.ward]||{mla:'Local MLA',bbmp:'BBMP Officer',dept:'Public Works'};
+  var off=getOfficerForWard(issue.ward);
   var days=dopen(issue.created_at);
   var tweet='🚨 '+days+'d UNRESOLVED — '+issue.ward+', Bengaluru\n\n'+issue.issue_type+': '+issue.description.slice(0,100)+'\n\nResponsible: '+off.mla+' (MLA) · BBMP: '+off.bbmp+'\n\n#'+issue.ward.replace(/\s/g,'')+' #CivicAI #BBMP #Bengaluru';
-  var email='Subject: [URGENT] Unresolved '+issue.issue_type+' — '+issue.ward+' ('+days+' days overdue)\n\nDear '+off.bbmp+',\n'+off.dept+' Department, BBMP\n\nCivicAI Issue: #'+issue.id+'\nIssue: '+issue.issue_type+'\nLocation: '+issue.location_name+'\nSeverity: '+issue.severity.toUpperCase()+'\nReported: '+fmtd(issue.created_at)+'\nDays Open: '+days+'\n\nThis issue is publicly tracked at civicai.in. Mandated SLA is 30 days — currently at '+days+' days.\n\nCC: '+off.mla+' (MLA, '+issue.ward+')\n\nImmediate action required.\n— CivicAI Citizen Network';
+  var email='Subject: [URGENT] Unresolved '+issue.issue_type+' — '+issue.ward+' ('+days+' days overdue)\n\nDear '+off.bbmp+',\n'+off.dept+' Department, BBMP\n\nCivicAI Issue: #'+issue.id+'\nIssue: '+issue.issue_type+'\nLocation: '+issue.location_name+'\nSeverity: '+issue.severity.toUpperCase()+'\nReported: '+fmtd(issue.created_at)+'\nDays Open: '+days+'\n\nThis issue is publicly tracked at civicai.in.\n\nCC: '+off.mla+' (MLA, '+issue.ward+')\n\nImmediate action required.\n— CivicAI Citizen Network';
   var wa='*CivicAI Alert 🚨*\n*'+issue.issue_type+'* — *'+issue.ward+'* · *'+days+' days unresolved*\n\n📍 '+issue.location_name+'\n'+issue.description.slice(0,120)+'\n\nOfficer: *'+off.bbmp+'* ('+off.dept+') · MLA: *'+off.mla+'*\n\nShare to demand action! civicai.in';
- 
+
   var h='<div class="ov" id="esc-ov" onclick="if(event.target===this)this.remove()">';
   h+='<div class="modal">';
   h+='<div class="mhead"><div class="mtitle" style="display:flex;align-items:center;gap:7px">⚡ Escalate Issue</div><button class="closebtn" onclick="document.getElementById(\'esc-ov\').remove()">'+xsvg()+'</button></div>';
@@ -1345,28 +1384,29 @@ function openEsc(id){
   [['MLA',off.mla],['BBMP Officer',off.bbmp],['Department',off.dept]].forEach(function(r){
     h+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--b);font-size:12.5px"><span style="color:var(--muted)">'+r[0]+'</span><span style="color:var(--text);font-weight:600">'+esc(r[1])+'</span></div>';
   });
- 
-  var templates=[
+
+  [
     ['𝕏 Tweet Template',tweet,'#1DA1F2','rgba(29,161,242,.08)','Tweet'],
     ['💬 WhatsApp Message',wa,'#25D166','rgba(37,211,102,.08)','WhatsApp'],
-    ['✉ Email Draft',email,'var(--blue)','rgba(59,158,255,.08)','Email'],
-  ];
-  templates.forEach(function(t){
+    ['✉ Email Draft',email,'var(--blue)','rgba(59,158,255,.08)','Email']
+  ].forEach(function(t){
     h+='<div style="margin-top:14px">';
     h+='<div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px">'+t[0]+'</div>';
     h+='<pre style="background:rgba(255,255,255,.025);border-radius:8px;padding:10px;font-size:11px;color:var(--sub);line-height:1.55;white-space:pre-wrap;max-height:110px;overflow-y:auto;font-family:\'JetBrains Mono\',monospace">'+esc(t[1])+'</pre>';
-    h+='<button onclick="cp(\''+safeEsc(t[1])+'\')" class="copybtn" style="background:'+t[3]+';border:1px solid '+t[2]+'40;color:'+t[2]+'">Copy '+t[4]+'</button>';
+    h+='<button onclick="cp(\''+safeEsc(t[1])+'\',\''+t[4]+'\')" class="copybtn" style="background:'+t[3]+';border:1px solid '+t[2]+'40;color:'+t[2]+'">Copy '+t[4]+'</button>';
     h+='</div>';
   });
   h+='</div></div></div>';
   document.body.insertAdjacentHTML('beforeend',h);
 }
- 
+
 /* ════════════════════════════════════════
    REPORT MODAL
-════════════════════════════════════════ */
+═════════════════════════════════════════ */
 function openRpt(){
-  rptStep=1;rptForm={issue_type:'',description:'',location_name:'',ward:'',image_url:null};aiRes=null;
+  rptStep=1;
+  rptForm={issue_type:'',description:'',location_name:'',ward:'',image_url:null,ward_id:null};
+  aiRes=null;
   document.body.insertAdjacentHTML('beforeend',buildRptModal());
 }
 function buildRptModal(){
@@ -1382,7 +1422,7 @@ function rptHTML(){
   } else {
     h+='<div style="color:var(--muted);margin-bottom:6px;display:flex;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>';
     h+='<div style="font-size:13.5px;color:var(--sub);font-weight:600">Add Photo</div>';
-    h+='<div style="font-size:11px;color:var(--muted);margin-top:3px">Tap · Drag &amp; drop · JPG/PNG/HEIC</div>';
+    h+='<div style="font-size:11px;color:var(--muted);margin-top:3px">Tap · Drag & drop · JPG/PNG/HEIC</div>';
     h+='<div style="font-size:10px;color:rgba(0,200,150,.6);margin-top:4px">AI will auto-classify issue type from photo</div>';
   }
   h+='<input type="file" id="pfile" accept="image/*" style="display:none" onchange="handlePh(this.files[0])"></div>';
@@ -1391,30 +1431,33 @@ function rptHTML(){
   h+='</select>';
   h+='<label class="fl">Description</label><textarea class="fi" rows="3" placeholder="Describe the issue clearly…" oninput="rptForm.description=this.value">'+esc(rptForm.description)+'</textarea>';
   h+='<label class="fl">Location</label><input class="fi" type="text" placeholder="e.g. Indiranagar 12th Main" value="'+esc(rptForm.location_name)+'" oninput="rptForm.location_name=this.value">';
-  h+='<label class="fl">Ward</label><select class="fi" onchange="rptForm.ward=this.value"><option value="" disabled '+(rptForm.ward?'':'selected')+'>Select your ward (198 BBMP wards)</option>';
+  h+='<label class="fl">Ward</label><select class="fi" onchange="onWardSelect(this.value)"><option value="" disabled '+(rptForm.ward?'':'selected')+'>Select your ward</option>';
   Object.entries(WARDS_BY_ZONE).forEach(function(zEntry){
     h+='<optgroup label="── '+zEntry[0]+' ──">';
-    zEntry[1].forEach(function(w){ h+='<option value="'+w+'"'+(rptForm.ward===w?' selected':'')+'>'+w+'</option>'; });
+    zEntry[1].forEach(function(w){ h+='<option value="'+esc(w)+'"'+(rptForm.ward===w?' selected':'')+'>'+esc(w)+'</option>'; });
     h+='</optgroup>';
   });
   h+='</select>';
   h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">';
-  h+='<div style="font-size:11px;color:var(--teal);font-weight:600">✓ Verified by CivicChain</div>';
-  h+='<button onclick="submitS1()" style="padding:9px 22px;border-radius:9px;background:linear-gradient(135deg,#00C896,#0070F3);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer">Next: AI Review →</button>';
+  h+='<div style="font-size:11px;color:var(--teal);font-weight:600">✓ Will be saved to backend</div>';
+  h+='<button onclick="submitS1()" style="padding:9px 22px;border-radius:9px;background:linear-gradient(135deg,#00C896,#0070F3);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer">Next: Review →</button>';
   h+='</div>';
   return h;
+}
+function onWardSelect(wardName){
+  rptForm.ward = wardName;
+  rptForm.ward_id = WARD_META[wardName] ? WARD_META[wardName].ward_id : null;
 }
 function rptStep2(){
   var h='<div class="sbar"><div class="sseg" style="background:var(--teal)"></div><div class="sseg" style="background:var(--teal)"></div></div>';
   if(rptForm.image_url) h+='<img src="'+rptForm.image_url+'" style="width:100%;border-radius:9px;margin-bottom:13px;max-height:155px;object-fit:cover">';
-  h+='<div class="aibox"><div class="ai-lbl">✓ AI Review Complete</div>';
+  h+='<div class="aibox"><div class="ai-lbl">✓ Review Complete</div>';
   if(aiRes){
     h+='<div style="font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:7px">'+esc(aiRes.ai_summary||'Classified successfully.')+'</div>';
     h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px">'+spill(aiRes.severity||'medium');
     if(aiRes.department) h+='<span class="pill" style="color:var(--blue);background:rgba(59,158,255,0.12)">'+esc(aiRes.department)+'</span>';
     if(aiRes.priority_score) h+='<span class="pill" style="color:var(--muted);background:var(--faint)">P'+aiRes.priority_score+'/100</span>';
     h+='</div>';
-    if(aiRes.estimated_days) h+='<div style="font-size:11px;color:var(--muted)">Est. resolution: '+aiRes.estimated_days+' days'+(aiRes.policy?' · '+esc(aiRes.policy):'')+'</div>';
   } else {
     h+='<div style="font-size:13px;color:var(--sub)">Classified as civic issue requiring attention.</div>';
   }
@@ -1424,7 +1467,7 @@ function rptStep2(){
   h+='<button onclick="rptStep=1;rfr()" style="flex:1;padding:10px;border-radius:9px;background:var(--faint);border:1px solid var(--b);color:var(--sub);font-size:13.5px;font-weight:600;cursor:pointer">← Edit</button>';
   h+='<button onclick="finalSub()" style="flex:2;padding:10px;border-radius:9px;background:linear-gradient(135deg,#00C896,#0070F3);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer">Submit Issue ✓</button>';
   h+='</div>';
-  h+='<div style="font-size:10px;color:var(--muted);text-align:center;margin-top:10px">AI is advisory. Community review + CivicChain audit applies.</div>';
+  h+='<div style="font-size:10px;color:var(--muted);text-align:center;margin-top:10px">This will be stored in backend DB.</div>';
   return h;
 }
 function rfr(){ var b=e('rpt-body'); if(b) b.innerHTML=rptHTML(); }
@@ -1436,32 +1479,49 @@ function handlePh(file){
 }
 function submitS1(){
   if(!rptForm.issue_type||!rptForm.description){ toast('Please select type and add description','#FF8C00'); return; }
-  rptStep=2; rfr();
-  fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:'Classify this Bengaluru civic issue. Reply ONLY with valid JSON, no markdown:\nIssue: '+rptForm.issue_type+'\nDescription: '+rptForm.description+'\nLocation: '+(rptForm.location_name||'Bengaluru')+'\nReturn: {"severity":"critical|high|medium|low","ai_summary":"one sentence","department":"BBMP dept","priority_score":1-100,"estimated_days":7-60,"policy":"policy name"}'}]})})
-  .then(function(res){ return res.json(); })
-  .then(function(d){
-    var t=((d.content||[]).find(function(c){ return c.type==='text'; })||{}).text||'{}';
-    aiRes=JSON.parse(t.replace(/```json|```/g,'').trim());
-    rfr();
-  })
-  .catch(function(){
-    aiRes={severity:'medium',ai_summary:'Classified as civic issue requiring attention.',department:'Public Works',priority_score:55,estimated_days:14};
-    rfr();
-  });
+  if(!rptForm.ward){ toast('Please select a ward','#FF8C00'); return; }
+  rptStep=2;
+  aiRes={
+    severity:'medium',
+    ai_summary:'Prepared for backend submission.',
+    department:'BBMP Department',
+    priority_score:55,
+    estimated_days:14
+  };
+  rfr();
 }
-function finalSub(){
-  var issue={id:gid(),issue_type:rptForm.issue_type,description:rptForm.description,location_name:rptForm.location_name,ward:rptForm.ward,image_url:rptForm.image_url,severity:aiRes?aiRes.severity:'medium',status:'open',created_at:new Date().toISOString(),timestamp:new Date().toISOString(),upvotes:0,source:'citizen',latitude:12.97+(Math.random()-.5)*.12,longitude:77.59+(Math.random()-.5)*.18};
-  DATA.issues.unshift(issue);
-  DATA.leaderboard=lbFromIssues(DATA.issues);
-  syncUI();
-  var ov=e('rpt-ov'); if(ov) ov.remove();
-  toast('✓ Issue reported — live on dashboard!','#30D158');
-  render();
+async function finalSub(){
+  if(!rptForm.ward){ toast('Ward is required','#FF8C00'); return; }
+
+  try{
+    var payload={
+      issue_type:rptForm.issue_type,
+      description:rptForm.description,
+      location_name:rptForm.location_name,
+      ward_id:rptForm.ward_id,
+      ward:rptForm.ward,
+      source:'citizen',
+      image_url:rptForm.image_url,
+      severity: aiRes ? aiRes.severity : 'medium'
+    };
+
+    await api('/issues', {
+      method:'POST',
+      body: JSON.stringify(payload)
+    });
+
+    var ov=e('rpt-ov'); if(ov) ov.remove();
+    toast('✓ Issue saved to backend and dashboard','#30D158');
+    await fetchIssuesFromBackend();
+  }catch(err){
+    console.warn('[finalSub]', err);
+    toast('⚠ Save failed: '+err.message,'#FF3355');
+  }
 }
- 
+
 /* ════════════════════════════════════════
    UTILITIES
-════════════════════════════════════════ */
+═════════════════════════════════════════ */
 function upvote(id,btn){
   var issue=DATA.issues.find(function(i){ return i.id===id; });
   if(issue){ issue.upvotes++; if(btn) btn.textContent='▲ '+issue.upvotes; }
@@ -1471,14 +1531,20 @@ function selWard(w){
   feedWard=wardSel;
   render();
 }
-function cp(text){
-  var label=arguments[1]||'Text';
-  try{ navigator.clipboard.writeText(text); } catch(e){ var t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t); }
-  toast('✓ '+(label||'Text')+' copied!','#30D158');
+function cp(text,label){
+  label = label || 'Text';
+  try{ navigator.clipboard.writeText(text); }
+  catch(e){
+    var t=document.createElement('textarea');
+    t.value=text; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+  }
+  toast('✓ '+label+' copied!','#30D158');
 }
 function toast(msg,col){
   var t=e('toast');
-  t.textContent=msg; t.style.background=col||'#30D158';
+  if(!t) return;
+  t.textContent=msg;
+  t.style.background=col||'#30D158';
   t.classList.add('show');
   setTimeout(function(){ t.classList.remove('show'); },2800);
 }
@@ -1486,16 +1552,29 @@ document.addEventListener('click',function(ev){
   var sb=e('sb'); var hb=document.querySelector('.hbtn');
   if(window.innerWidth<768&&sb&&sb.classList.contains('open')&&!sb.contains(ev.target)&&hb&&!hb.contains(ev.target)) closeSB();
 });
- 
+
 /* ════════════════════════════════════════
-   INIT — seed first, fetch live after
-════════════════════════════════════════ */
-DATA={issues:SEED,leaderboard:seedLB(),clusters:seedClusters(),timestamp:null};
-syncUI();
-render();
-/* Fetch live data 1s after paint — never blocks initial render */
-setTimeout(function(){ fetchData(false); }, 1000);
-startCD();
+   INIT
+═════════════════════════════════════════ */
+(async function init(){
+  DATA={issues:SEED,leaderboard:seedLB(),clusters:seedClusters(),timestamp:null};
+  syncUI();
+  render();
+
+  await checkHealth();
+  await loadWardMetaIndex();
+
+  if(BACKEND_OK){
+    try{
+      await fetchIssuesFromBackend();
+    }catch(err){
+      console.warn('[init-fetchIssues]', err);
+    }
+  }
+
+  setTimeout(function(){ if(BACKEND_OK) fetchData(false); }, 1000);
+  startCD();
+})();
 </script>
 </body>
 </html>
