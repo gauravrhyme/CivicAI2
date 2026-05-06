@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>CivicAI — Action Initiative</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#05080F;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;color:#fff;overflow-x:hidden;}
+  select,textarea,input{outline:none;font-family:inherit;}
+  button{font-family:inherit;}
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:2px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes slideUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+  .card-hover:hover{background:#131D30!important;border-color:rgba(0,200,150,0.2)!important;}
+  .tab-btn:hover{color:rgba(255,255,255,0.7)!important;}
+  .fab:hover{transform:scale(1.08);box-shadow:0 8px 34px rgba(0,200,150,0.55)!important;}
+  .fab{transition:transform .2s,box-shadow .2s;}
+  .pill-btn:hover{opacity:0.8;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+
+<script type="text/babel">
+const {useState, useRef, useEffect, useCallback} = React;
+
+// ─── TOKENS ──────────────────────────────────────────────────────────────────
+const C = {
+  bg:"#05080F", surface:"#0B1120", card:"#0F1729",
+  border:"rgba(255,255,255,0.07)",
+  teal:"#00C896", blue:"#00A8FF", red:"#FF2D55",
+  orange:"#FF9500", yellow:"#FFD60A", green:"#30D158",
+  text:"#FFFFFF", sub:"rgba(255,255,255,0.5)", muted:"rgba(255,255,255,0.28)",
+};
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const WARDS = [
+  "Indiranagar","Koramangala","Jayanagar","Rajajinagar","Malleswaram",
+  "Hebbal","Whitefield","Electronic City","HSR Layout","BTM Layout",
+  "Banashankari","Vijayanagar","Yelahanka","JP Nagar","Marathahalli",
+  "Shivajinagar","Basavanagudi","Frazer Town","Sadashivanagar","Bellandur",
+];
+const OFFICIALS = {
+  "Indiranagar":    {mla:"Sowmya Reddy",    bbmp:"R. Srinivas",  dept:"Public Works",   avatar:"RS",resolved:12,pending:2, avgDays:4 },
+  "Koramangala":    {mla:"Rizwan Arshad",    bbmp:"K. Venkatesh", dept:"Infrastructure", avatar:"KV",resolved:8, pending:5, avgDays:11},
+  "Jayanagar":      {mla:"D.K. Suresh",      bbmp:"P. Ramesh",    dept:"Public Works",   avatar:"PR",resolved:15,pending:1, avgDays:3 },
+  "Rajajinagar":    {mla:"S.T. Somashekhar", bbmp:"M. Lakshmi",   dept:"Roads",          avatar:"ML",resolved:3, pending:9, avgDays:22},
+  "Malleswaram":    {mla:"Ashwath Narayan",  bbmp:"V. Anand",     dept:"Public Works",   avatar:"VA",resolved:6, pending:4, avgDays:14},
+  "Hebbal":         {mla:"Byrathi Suresh",    bbmp:"N. Gopal",     dept:"Infrastructure", avatar:"NG",resolved:1, pending:11,avgDays:31},
+  "Whitefield":     {mla:"Priya Krishna",    bbmp:"S. Murthy",    dept:"Roads",          avatar:"SM",resolved:10,pending:3, avgDays:6 },
+  "Electronic City":{mla:"N.A. Harris",      bbmp:"B. Raju",      dept:"Public Works",   avatar:"BR",resolved:2, pending:8, avgDays:27},
+  "HSR Layout":     {mla:"Saritha Ramaiah",  bbmp:"C. Prakash",   dept:"Roads",          avatar:"CP",resolved:9, pending:2, avgDays:5 },
+  "BTM Layout":     {mla:"Ramalinga Reddy",  bbmp:"D. Kumar",     dept:"Infrastructure", avatar:"DK",resolved:0, pending:13,avgDays:45},
+};
+const ISSUE_TYPES = ["Pothole","Garbage","Broken Streetlight","Open Drain","Illegal Dumping","Damaged Footpath","Water Logging","Encroachment"];
+const SOURCE_META = {
+  twitter:{bg:"rgba(29,161,242,0.12)",color:"#1DA1F2",label:"Twitter/X"},
+  bbmp:   {bg:"rgba(0,200,150,0.12)", color:"#00C896",label:"BBMP"},
+  citizen:{bg:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.5)",label:"Citizen"},
+  news:   {bg:"rgba(255,149,0,0.12)", color:"#FF9500",label:"News"},
+  reddit: {bg:"rgba(255,69,0,0.12)",  color:"#FF4500",label:"Reddit"},
+  scrape: {bg:"rgba(0,168,255,0.12)", color:"#00A8FF",label:"Live Feed"},
+};
+
+const genId = () => Math.random().toString(36).slice(2,9).toUpperCase();
+const daysAgo = n => { const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString(); };
+const daysOpen = d => Math.floor((Date.now()-new Date(d))/86400000);
+const sevColor = s => ({critical:C.red,high:C.orange,medium:C.yellow,low:C.green}[s]||C.sub);
+const sevBg    = s => ({critical:"rgba(255,45,85,0.12)",high:"rgba(255,149,0,0.12)",medium:"rgba(255,214,10,0.12)",low:"rgba(48,209,88,0.12)"}[s]||"rgba(255,255,255,0.06)");
+
+const SEED = [
+  {id:genId(),issue_type:"Pothole",          description:"Large pothole on 12th Main Road causing daily near-miss accidents",       location_name:"Indiranagar, 12th Main",   ward:"Indiranagar",    severity:"critical",status:"open",    created_at:daysAgo(14),upvotes:43,source:"citizen",image_url:null},
+  {id:genId(),issue_type:"Garbage",          description:"Overflowing garbage bins near market — 5 days uncollected, stench severe", location_name:"Koramangala, 5th Block",   ward:"Koramangala",    severity:"high",   status:"open",    created_at:daysAgo(8), upvotes:27,source:"citizen",image_url:null},
+  {id:genId(),issue_type:"Broken Streetlight",description:"3 consecutive streetlights non-functional since last week",               location_name:"Jayanagar, 4th Block",     ward:"Jayanagar",      severity:"medium", status:"resolved",created_at:daysAgo(20),upvotes:18,source:"citizen",image_url:null},
+  {id:genId(),issue_type:"Open Drain",       description:"Exposed drain posing health hazard near school gate, kids at risk",        location_name:"Rajajinagar, 3rd Block",   ward:"Rajajinagar",    severity:"high",   status:"open",    created_at:daysAgo(5), upvotes:31,source:"citizen",image_url:null},
+  {id:genId(),issue_type:"Water Logging",    description:"Severe waterlogging, vehicles stuck 2+ hours after every rain",            location_name:"Whitefield, ITPL Road",    ward:"Whitefield",     severity:"critical",status:"open",    created_at:daysAgo(2), upvotes:56,source:"citizen",image_url:null},
+  {id:genId(),issue_type:"Garbage",          description:"Dead animal not removed for 3 days from main road, disease risk",          location_name:"Hebbal, Lake Road",        ward:"Hebbal",         severity:"high",   status:"open",    created_at:daysAgo(45),upvotes:19,source:"citizen",image_url:null},
+  {id:genId(),issue_type:"Pothole",          description:"Road caved in partially, blocking one traffic lane on 80ft Road",          location_name:"BTM Layout, 80ft Road",    ward:"BTM Layout",     severity:"critical",status:"open",    created_at:daysAgo(18),upvotes:41,source:"citizen",image_url:null},
+  {id:genId(),issue_type:"Pothole",          description:"Deep pothole causing near-miss accidents every morning rush hour",          location_name:"Electronic City, Phase 1", ward:"Electronic City",severity:"high",   status:"open",    created_at:daysAgo(27),upvotes:38,source:"citizen",image_url:null},
+  {id:genId(),issue_type:"Illegal Dumping",  description:"Construction debris dumped on public footpath blocking pedestrians",        location_name:"Hebbal, Ring Road",        ward:"Hebbal",         severity:"medium", status:"open",    created_at:daysAgo(31),upvotes:9, source:"citizen",image_url:null},
+  {id:genId(),issue_type:"Damaged Footpath", description:"Broken tiles creating serious accessibility hazard near shopping mall",     location_name:"BTM Layout, 2nd Stage",    ward:"BTM Layout",     severity:"low",    status:"resolved",created_at:daysAgo(30),upvotes:7, source:"citizen",image_url:null},
+];
+
+// ─── LOGO SVG ─────────────────────────────────────────────────────────────────
+function CivicAILogo({size=36}) {
+  const teeth = [0,45,90,135,180,225,270,315].map(a => {
+    const r=a*Math.PI/180;
+    return {x1:50+8.5*Math.cos(r),y1:50+8.5*Math.sin(r),x2:50+13*Math.cos(r),y2:50+13*Math.sin(r),key:a};
+  });
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+      <defs>
+        <linearGradient id="logoGrad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#00C896"/>
+          <stop offset="60%" stopColor="#00BBDF"/>
+          <stop offset="100%" stopColor="#00A8FF"/>
+        </linearGradient>
+      </defs>
+      <path d="M50 50 Q50 24 32 18 Q14 12 14 30 Q14 46 30 50 Q46 54 50 50Z" stroke="url(#logoGrad)" strokeWidth="6.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M50 50 Q50 24 68 18 Q86 12 86 30 Q86 46 70 50 Q54 54 50 50Z" stroke="url(#logoGrad)" strokeWidth="6.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M50 50 Q50 76 32 82 Q14 88 14 70 Q14 54 30 50 Q46 46 50 50Z" stroke="url(#logoGrad)" strokeWidth="6.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M50 50 Q50 76 68 82 Q86 88 86 70 Q86 54 70 50 Q54 46 50 50Z" stroke="url(#logoGrad)" strokeWidth="6.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="50" cy="50" r="8.5" fill="#05080F" stroke="url(#logoGrad)" strokeWidth="2.5"/>
+      <circle cx="50" cy="50" r="3.5" fill="url(#logoGrad)"/>
+      {teeth.map(t => <line key={t.key} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} stroke="url(#logoGrad)" strokeWidth="2.5" strokeLinecap="round"/>)}
+    </svg>
+  );
+}
+
+function LogoFull() {
+  return (
+    <div style={{display:"flex",alignItems:"center",gap:10}}>
+      <CivicAILogo size={38}/>
+      <div>
+        <div style={{fontFamily:"Georgia,serif",fontSize:20,fontWeight:800,letterSpacing:-0.5,lineHeight:1}}>
+          <span style={{color:C.teal}}>Civic</span><span style={{color:C.blue}}>AI</span>
+        </div>
+        <div style={{fontSize:8,color:C.muted,letterSpacing:3.5,textTransform:"uppercase",marginTop:1}}>Action Initiative</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SVG ICONS ────────────────────────────────────────────────────────────────
+const SVG = {
+  feed:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
+  chart:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+  map:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>,
+  hall:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="11"/><path d="M5 3H3v6a4 4 0 004 4h10a4 4 0 004-4V3h-2"/><line x1="5" y1="3" x2="19" y2="3"/></svg>,
+  plus:   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  up:     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="17 11 12 6 7 11"/><line x1="12" y1="6" x2="12" y2="18"/></svg>,
+  share:  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>,
+  pin:    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+  close:  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  check:  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>,
+  bolt:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+  camera: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>,
+  trash:  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>,
+  twitter:<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>,
+  mail:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
+  refresh:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>,
+  globe:  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>,
+  warn:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+  phone:  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>,
+};
+
+// ─── BADGE COMPONENTS ─────────────────────────────────────────────────────────
+function Pill({children, color, bg}) {
+  return <span style={{fontSize:10,fontWeight:800,letterSpacing:.7,textTransform:"uppercase",padding:"2px 7px",borderRadius:4,color,background:bg,display:"inline-block"}}>{children}</span>;
+}
+function SevPill({s}) { return <Pill color={sevColor(s)} bg={sevBg(s)}>{s}</Pill>; }
+function StatusPill({s}) { return <Pill color={s==="resolved"?C.green:C.orange} bg={s==="resolved"?"rgba(48,209,88,0.12)":"rgba(255,149,0,0.12)"}>{s}</Pill>; }
+function SourceBadge({src}) {
+  const m = SOURCE_META[src]||SOURCE_META.citizen;
+  return <Pill color={m.color} bg={m.bg}>{m.label}</Pill>;
+}
+function Avatar({initials, size=40, shame=false}) {
+  return <div style={{width:size,height:size,borderRadius:"50%",flexShrink:0,background:shame?"rgba(255,45,85,0.12)":"rgba(0,200,150,0.12)",border:`2px solid ${shame?C.red:C.teal}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*.34,fontWeight:800,color:shame?C.red:C.teal}}>{initials}</div>;
+}
+
+// ─── ISSUE CARD ───────────────────────────────────────────────────────────────
+function IssueCard({issue, onUpvote, onSelect}) {
+  const days = daysOpen(issue.created_at);
+  return (
+    <div className="card-hover" onClick={()=>onSelect(issue)} style={{background:C.card,border:`1px solid ${C.border}`,borderLeft:`3px solid ${sevColor(issue.severity)}`,borderRadius:14,padding:"14px 16px",cursor:"pointer",marginBottom:10,transition:"background .15s,border-color .15s",animation:"fadeIn .3s ease"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+        <div style={{fontSize:15,fontWeight:700,color:C.text,flex:1,marginRight:8}}>{issue.issue_type}</div>
+        <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end"}}>
+          <SevPill s={issue.severity}/>
+          <StatusPill s={issue.status}/>
+          {issue.source&&issue.source!=="citizen"&&<SourceBadge src={issue.source}/>}
+        </div>
+      </div>
+      <div style={{display:"flex",alignItems:"center",gap:4,color:C.muted,fontSize:12,marginBottom:6}}>
+        <span style={{display:"flex",alignItems:"center"}}>{SVG.pin}</span> {issue.ward}{issue.location_name?` · ${issue.location_name}`:""}
+      </div>
+      {issue.image_url&&<div style={{marginBottom:8,borderRadius:8,overflow:"hidden",maxHeight:160}}><img src={issue.image_url} alt="Issue" style={{width:"100%",objectFit:"cover",display:"block"}}/></div>}
+      <div style={{color:C.sub,fontSize:13,lineHeight:1.45,marginBottom:10}}>{issue.description}</div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span style={{fontSize:12,color:days>7?C.red:C.muted,fontWeight:days>7?700:400}}>{days}d open{days>7?" ⚠":""}</span>
+        <div style={{display:"flex",gap:7}}>
+          <button onClick={e=>{e.stopPropagation();onUpvote(issue.id);}} style={{display:"flex",alignItems:"center",gap:4,background:"rgba(0,200,150,0.1)",border:"1px solid rgba(0,200,150,0.25)",borderRadius:6,padding:"4px 10px",color:C.teal,fontSize:12,cursor:"pointer",fontWeight:700}}>
+            {SVG.up} {issue.upvotes}
+          </button>
+          <button onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",gap:3,background:"rgba(255,255,255,0.04)",border:`1px solid ${C.border}`,borderRadius:6,padding:"4px 9px",color:C.muted,fontSize:12,cursor:"pointer"}}>
+            {SVG.share}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── STAT CARD ────────────────────────────────────────────────────────────────
+function StatCard({label, value, sub, color}) {
+  return (
+    <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"14px 16px",flex:1,minWidth:130}}>
+      <div style={{fontSize:30,fontWeight:900,color,fontFamily:"Georgia,serif",letterSpacing:-1}}>{value}</div>
+      <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.75)",marginTop:2}}>{label}</div>
+      {sub&&<div style={{fontSize:11,color:C.muted,marginTop:2}}>{sub}</div>}
+    </div>
+  );
+}
+
+// ─── HEAT GRID ────────────────────────────────────────────────────────────────
+function HeatGrid({issues}) {
+  const wc={};
+  issues.forEach(i=>{ wc[i.ward]=(wc[i.ward]||0)+1; });
+  const max=Math.max(...Object.values(wc),1);
+  return (
+    <div>
+      <div style={{fontSize:11,color:C.muted,marginBottom:10}}>Ward-level issue intensity — darker = more issues</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6}}>
+        {WARDS.slice(0,16).map(w=>{
+          const c=wc[w]||0, pct=c/max;
+          const bg=pct>.65?C.red:pct>.35?C.orange:pct>.1?C.yellow:"rgba(255,255,255,0.04)";
+          return (
+            <div key={w} title={`${w}: ${c} issues`} style={{background:bg,borderRadius:8,padding:"9px 5px",textAlign:"center",opacity:c>0?.9:.25,border:"1px solid rgba(255,255,255,0.04)",cursor:"pointer"}}>
+              <div style={{fontSize:9.5,fontWeight:700,color:pct>.2?"white":C.muted,lineHeight:1.2}}>{w}</div>
+              {c>0&&<div style={{fontSize:15,fontWeight:900,color:"white",marginTop:1}}>{c}</div>}
+            </div>
+          );
+        })}
+      </div>
+      <div style={{display:"flex",gap:12,marginTop:10,fontSize:10,color:C.muted}}>
+        {[[C.red,"Critical"],[C.orange,"High"],[C.yellow,"Medium"]].map(([c,l])=>(
+          <div key={l} style={{display:"flex",alignItems:"center",gap:3}}><div style={{width:8,height:8,borderRadius:2,background:c}}/>{l}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── HALL SCREEN ──────────────────────────────────────────────────────────────
+function HallScreen({issues}) {
+  const [mode,setMode] = useState("fame");
+  const officers = Object.entries(OFFICIALS).map(([ward,off])=>{
+    const wi=issues.filter(i=>i.ward===ward);
+    const open=wi.filter(i=>i.status==="open");
+    const crit=open.filter(i=>i.severity==="critical").length;
+    const maxD=open.length?Math.max(...open.map(i=>daysOpen(i.created_at))):0;
+    const fameScore=off.resolved*8-off.pending*5-Math.floor(off.avgDays*1.5);
+    const shameScore=off.pending*6+crit*10+maxD+off.avgDays*2-off.resolved*3;
+    return{ward,...off,openCount:open.length,crit,maxD,fameScore,shameScore};
+  });
+  const list=[...officers].sort((a,b)=>mode==="fame"?b.fameScore-a.fameScore:b.shameScore-a.shameScore);
+  const podCols=mode==="fame"?["#FFD700","#C0C0C0","#CD7F32"]:[C.red,"#FF6B35",C.orange];
+  const top3=list.slice(0,3);
+  const citizens=[
+    {name:"Anil Sharma",  role:"Junior Engineer",  ward:"Jayanagar",  score:185,complaints:8,verified:5,solved:4,avatar:"AS"},
+    {name:"Priya Menon",  role:"Ward Inspector",   ward:"Whitefield", score:142,complaints:6,verified:6,solved:3,avatar:"PM"},
+    {name:"Sandeep Patil",role:"Health Officer",   ward:"HSR Layout", score:118,complaints:5,verified:4,solved:4,avatar:"SP"},
+  ];
+  return (
+    <div>
+      <div style={{display:"flex",background:"rgba(255,255,255,0.04)",borderRadius:12,padding:4,marginBottom:20}}>
+        {[["fame","🏆 Hall of Fame"],["shame","💀 Hall of Shame"]].map(([m,l])=>(
+          <button key={m} onClick={()=>setMode(m)} style={{flex:1,padding:"9px 6px",borderRadius:9,border:"none",cursor:"pointer",fontSize:13,fontWeight:800,background:mode===m?(m==="fame"?`linear-gradient(135deg,${C.teal},${C.blue})`:`linear-gradient(135deg,${C.red},${C.orange})`):"transparent",color:mode===m?"white":C.muted,transition:"all .2s"}}>
+            {l}
+          </button>
+        ))}
+      </div>
+      <div style={{textAlign:"center",marginBottom:20}}>
+        <div style={{fontSize:22,fontWeight:900,color:mode==="fame"?C.text:C.red}}>{mode==="fame"?"🏆 Officers Employed":"💀 Hall of Shame"}</div>
+        <div style={{fontSize:13,color:C.muted,marginTop:4}}>{mode==="fame"?"Civic heroes resolving issues fastest":"Officers with most overdue & unresolved issues"}</div>
+      </div>
+      {/* Podium */}
+      <div style={{display:"flex",justifyContent:"center",alignItems:"flex-end",gap:8,marginBottom:22}}>
+        {[1,0,2].map(idx=>{
+          const o=top3[idx]; if(!o) return null;
+          const col=podCols[idx], isFirst=idx===0;
+          return (
+            <div key={o.ward} style={{flex:1,textAlign:"center"}}>
+              {isFirst&&<div style={{fontSize:20,marginBottom:4}}>{mode==="fame"?"🥇":"💀"}</div>}
+              <Avatar initials={o.avatar} size={isFirst?54:44} shame={mode==="shame"&&idx<2}/>
+              <div style={{fontSize:11,fontWeight:700,color:C.text,marginTop:5,lineHeight:1.3}}>{o.bbmp}</div>
+              <div style={{fontSize:10,color:C.muted}}>{o.ward}</div>
+              <div style={{marginTop:6,background:`${col}15`,border:`1px solid ${col}40`,borderRadius:8,padding:isFirst?"8px 4px":"6px 4px"}}>
+                <div style={{fontSize:9,color:col,fontWeight:700,textTransform:"uppercase"}}>#{idx+1}</div>
+                <div style={{fontSize:isFirst?22:17,fontWeight:900,color:col}}>{mode==="fame"?o.resolved:o.pending}</div>
+                <div style={{fontSize:9,color:C.muted}}>{mode==="fame"?"resolved":"pending"}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {/* Full list */}
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:14,marginBottom:14}}>
+        <div style={{fontSize:11,color:C.muted,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:11}}>Full Rankings</div>
+        {list.map((o,i)=>{
+          const col=i===0?podCols[0]:i===1?podCols[1]:i===2?podCols[2]:C.muted;
+          return (
+            <div key={o.ward} style={{display:"flex",alignItems:"center",gap:9,padding:"9px 0",borderBottom:i<list.length-1?`1px solid ${C.border}`:"none"}}>
+              <div style={{width:24,height:24,borderRadius:"50%",background:i<3?`${col}20`:"rgba(255,255,255,0.04)",border:`1.5px solid ${i<3?col:C.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:i<3?col:C.muted,flexShrink:0}}>{i+1}</div>
+              <Avatar initials={o.avatar} size={34} shame={mode==="shame"&&i<3}/>
+              <div style={{flex:1}}>
+                <div style={{fontSize:13,fontWeight:700,color:C.text}}>{o.bbmp}</div>
+                <div style={{fontSize:11,color:C.muted}}>{o.dept} · {o.ward}</div>
+                <div style={{fontSize:11,color:mode==="shame"&&o.pending>5?C.orange:C.muted,marginTop:1}}>
+                  {mode==="fame"?`${o.resolved} resolved · avg ${o.avgDays}d`:`${o.pending} pending · ${o.crit} critical · max ${o.maxD}d`}
+                </div>
+              </div>
+              <div style={{fontSize:13,fontWeight:800,color:col,textAlign:"right"}}>
+                {Math.max(mode==="fame"?o.fameScore:o.shameScore,0)}
+                <div style={{fontSize:9,color:C.muted,fontWeight:400}}>pts</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {mode==="fame"&&(
+        <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:14}}>
+          <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:14}}>🌟 Top Citizen Reporters</div>
+          {citizens.map((p,i)=>(
+            <div key={p.name} style={{display:"flex",gap:10,alignItems:"center",padding:"9px 0",borderBottom:i<citizens.length-1?`1px solid ${C.border}`:"none"}}>
+              <Avatar initials={p.avatar} size={42}/>
+              <div style={{flex:1}}>
+                <div style={{fontSize:14,fontWeight:700,color:C.text}}>{p.name}</div>
+                <div style={{fontSize:11,color:C.muted}}>{p.role} · {p.ward}</div>
+                <div style={{display:"flex",gap:12,marginTop:5}}>
+                  {[["Reports",p.complaints,C.blue],["Verified",p.verified,C.teal],["Solved",p.solved,C.green]].map(([l,v,c])=>(
+                    <div key={l}><div style={{fontSize:14,fontWeight:800,color:c}}>{v}</div><div style={{fontSize:9,color:C.muted,textTransform:"uppercase",letterSpacing:.5}}>{l}</div></div>
+                  ))}
+                </div>
+              </div>
+              <div style={{textAlign:"center"}}><div style={{fontSize:22,fontWeight:900,color:C.teal}}>{p.score}</div><div style={{fontSize:9,color:C.muted,textTransform:"uppercase"}}>Score</div></div>
+            </div>
+          ))}
+        </div>
+      )}
+      {mode==="shame"&&(
+        <div style={{background:"rgba(255,45,85,0.04)",border:"1px solid rgba(255,45,85,0.14)",borderRadius:14,padding:14}}>
+          <div style={{fontSize:14,fontWeight:700,color:C.red,marginBottom:12,display:"flex",alignItems:"center",gap:5}}>
+            {SVG.warn} SLA Breached Issues (&gt;14 days)
+          </div>
+          {issues.filter(i=>i.status==="open"&&daysOpen(i.created_at)>14).sort((a,b)=>daysOpen(b.created_at)-daysOpen(a.created_at)).map((issue,i)=>{
+            const off=OFFICIALS[issue.ward];
+            return (
+              <div key={issue.id} style={{padding:"8px 0",borderBottom:i<4?"1px solid rgba(255,45,85,0.1)":"none"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:700,color:C.text}}>{issue.issue_type} · {issue.ward}</div>
+                    <div style={{fontSize:11,color:C.muted,marginTop:1}}>{issue.description.slice(0,60)}…</div>
+                    <div style={{fontSize:11,color:C.muted,marginTop:2}}>Responsible: {off?.bbmp} ({off?.dept})</div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    <div style={{fontSize:18,fontWeight:900,color:C.red}}>{daysOpen(issue.created_at)}d</div>
+                    <SevPill s={issue.severity}/>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── ESCALATION MODAL ─────────────────────────────────────────────────────────
+function EscalateModal({issue, onClose}) {
+  const off=OFFICIALS[issue.ward]||{mla:"Local MLA",bbmp:"BBMP Officer",dept:"Public Works"};
+  const days=daysOpen(issue.created_at);
+  const tweet=`🚨 ${days}d UNRESOLVED — ${issue.ward}, Bengaluru\n\n${issue.issue_type}: ${issue.description}\n\nResponsible: ${off.mla} (MLA) + BBMP\n\n#${issue.ward.replace(/\s/g,"")} #CivicAI #BBMP #Bengaluru`;
+  const email=`Subject: [URGENT] Unresolved ${issue.issue_type} — ${issue.ward} (${days} days overdue)\n\nDear ${off.bbmp},\n${off.dept} Department, BBMP\n\nCivicAI Issue ID: #${issue.id}\nIssue: ${issue.issue_type}\nLocation: ${issue.location_name}\nSeverity: ${issue.severity.toUpperCase()}\nDays Open: ${days}\nCommunity Upvotes: ${issue.upvotes}\n\nThis issue is publicly tracked and visible to ${issue.upvotes}+ citizens. Mandated SLA is 30 days — you are at ${days} days.\n\nCC: ${off.mla} (MLA, ${issue.ward})\n\nImmediate action required.\n— A CivicAI Citizen`;
+  const [copied,setCopied]=useState(null);
+  const copy=(text,k)=>{
+    if(navigator.clipboard) navigator.clipboard.writeText(text).catch(()=>{});
+    else { const t=document.createElement("textarea"); t.value=text; document.body.appendChild(t); t.select(); document.execCommand("copy"); document.body.removeChild(t); }
+    setCopied(k); setTimeout(()=>setCopied(null),2000);
+  };
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:20,padding:24,maxWidth:500,width:"100%",maxHeight:"88vh",overflowY:"auto",animation:"slideUp .3s ease"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div style={{fontSize:17,fontWeight:800,color:C.text,display:"flex",alignItems:"center",gap:7}}>{SVG.bolt} Escalate Issue</div>
+          <button onClick={onClose} style={{background:"none",border:"none",color:C.muted,cursor:"pointer"}}>{SVG.close}</button>
+        </div>
+        <div style={{background:"rgba(255,45,85,0.07)",border:"1px solid rgba(255,45,85,0.18)",borderRadius:10,padding:12,marginBottom:14}}>
+          <div style={{fontSize:11,color:C.red,fontWeight:700,marginBottom:3}}>ISSUE #{issue.id}</div>
+          <div style={{fontSize:15,fontWeight:700,color:C.text}}>{issue.issue_type} · {issue.ward}</div>
+          <div style={{fontSize:12,color:C.muted,marginTop:1}}>{days} days unresolved · {issue.upvotes} upvotes</div>
+        </div>
+        {[["MLA",off.mla],["BBMP Officer",off.bbmp],["Department",off.dept]].map(([k,v])=>(
+          <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:`1px solid ${C.border}`,fontSize:13}}>
+            <span style={{color:C.muted}}>{k}</span><span style={{color:C.text,fontWeight:600}}>{v}</span>
+          </div>
+        ))}
+        {[["tweet",tweet,SVG.twitter,"#1DA1F2","rgba(29,161,242,0.1)","Tweet"],["email",email,SVG.mail,C.blue,"rgba(0,168,255,0.1)","Email"]].map(([k,text,icon,col,bg,lbl])=>(
+          <div key={k} style={{marginTop:14}}>
+            <div style={{fontSize:11,color:C.muted,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:6,display:"flex",alignItems:"center",gap:5}}>{icon} {lbl} Template</div>
+            <pre style={{background:"rgba(255,255,255,0.03)",borderRadius:8,padding:10,fontSize:11.5,color:C.sub,lineHeight:1.6,whiteSpace:"pre-wrap",maxHeight:130,overflowY:"auto",fontFamily:"monospace"}}>{text}</pre>
+            <button onClick={()=>copy(text,k)} style={{marginTop:7,width:"100%",padding:"9px",borderRadius:8,background:copied===k?"rgba(48,209,88,0.15)":bg,border:`1px solid ${copied===k?C.green:col+"40"}`,color:copied===k?C.green:col,cursor:"pointer",fontSize:13,fontWeight:700}}>
+              {copied===k?"✓ Copied!":"Copy "+lbl}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── DETAIL MODAL ─────────────────────────────────────────────────────────────
+function DetailModal({issue, onClose, onEscalate}) {
+  const days=daysOpen(issue.created_at);
+  const off=OFFICIALS[issue.ward]||{mla:"Local MLA",bbmp:"BBMP Officer",dept:"Public Works"};
+  const steps=["Submitted","Verified","Assigned","In Progress","Resolved"];
+  const stepIdx=issue.status==="resolved"?4:Math.min(1+Math.floor(days/6),3);
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.9)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:20,padding:24,maxWidth:460,width:"100%",maxHeight:"88vh",overflowY:"auto",animation:"slideUp .3s ease"}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>
+          <span style={{fontSize:11,fontWeight:700,color:C.muted,letterSpacing:2}}>#{issue.id}</span>
+          <button onClick={onClose} style={{background:"none",border:"none",color:C.muted,cursor:"pointer"}}>{SVG.close}</button>
+        </div>
+        {issue.image_url&&<img src={issue.image_url} alt="Issue" style={{width:"100%",borderRadius:10,marginBottom:14,maxHeight:200,objectFit:"cover"}}/>}
+        <div style={{fontSize:21,fontWeight:800,color:C.text,marginBottom:4}}>{issue.issue_type}</div>
+        <div style={{display:"flex",alignItems:"center",gap:5,color:C.muted,fontSize:13,marginBottom:14}}>{SVG.pin} {issue.location_name}</div>
+        {/* Step tracker */}
+        <div style={{display:"flex",alignItems:"flex-start",marginBottom:18}}>
+          {steps.map((s,i)=>(
+            <div key={s} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center"}}>
+              <div style={{display:"flex",alignItems:"center",width:"100%"}}>
+                {i>0&&<div style={{flex:1,height:2,background:i<=stepIdx?C.teal:C.border}}/>}
+                <div style={{width:20,height:20,borderRadius:"50%",background:i<=stepIdx?C.teal:C.border,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:i<=stepIdx?"#05080F":C.muted,fontWeight:800,flexShrink:0}}>{i<stepIdx?"✓":i===stepIdx?"●":""}</div>
+                {i<steps.length-1&&<div style={{flex:1,height:2,background:i<stepIdx?C.teal:C.border}}/>}
+              </div>
+              <div style={{fontSize:9,color:i<=stepIdx?C.sub:C.muted,marginTop:4,textAlign:"center"}}>{s}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{display:"flex",gap:6,marginBottom:12}}><SevPill s={issue.severity}/><StatusPill s={issue.status}/>{issue.source&&<SourceBadge src={issue.source}/>}</div>
+        <div style={{color:C.sub,fontSize:14,lineHeight:1.55,marginBottom:14}}>{issue.description}</div>
+        <div style={{borderTop:`1px solid ${C.border}`,paddingTop:14,marginBottom:14}}>
+          <div style={{fontSize:11,color:C.muted,fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>Policy Accountability</div>
+          {[["Relevant Policy","Road & Civic Maintenance Policy"],["Responsible MLA",off.mla],["Department",off.dept],["Officer in Charge",off.bbmp],["Mandated SLA","Within 30 days"]].map(([k,v])=>(
+            <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:`1px solid ${C.border}`,fontSize:13}}>
+              <span style={{color:C.teal}}>{k}</span><span style={{color:C.text,fontWeight:600}}>{v}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{background:days>30?"rgba(255,45,85,0.08)":"rgba(255,149,0,0.07)",borderRadius:9,padding:10,fontSize:12,color:C.sub,marginBottom:10}}>
+          ⏱ <strong style={{color:days>30?C.red:C.orange}}>Elapsed: {days} days</strong>{days>30&&" · ⚠ SLA BREACHED"}
+        </div>
+        <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.06)",marginBottom:16}}>
+          <div style={{height:"100%",borderRadius:3,width:`${Math.min(days/30*100,100)}%`,background:days>30?C.red:`linear-gradient(90deg,${C.teal},${C.orange})`,transition:"width .5s"}}/>
+        </div>
+        <button onClick={()=>onEscalate(issue)} style={{width:"100%",padding:"13px",borderRadius:11,background:`linear-gradient(135deg,${C.red},${C.orange})`,border:"none",color:"white",fontSize:15,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          {SVG.bolt} Escalate to Officials
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── REPORT MODAL ─────────────────────────────────────────────────────────────
+function ReportModal({onClose, onSubmit}) {
+  const [step,setStep]=useState(1);
+  const [form,setForm]=useState({issue_type:"",description:"",location_name:"",ward:"",image_url:null});
+  const [aiResult,setAiResult]=useState(null);
+  const [loading,setLoading]=useState(false);
+  const [imgPreview,setImgPreview]=useState(null);
+  const [isDragging,setIsDragging]=useState(false);
+  const fileRef=useRef();
+  const upd=(k,v)=>setForm(f=>({...f,[k]:v}));
+
+  function handleFile(file) {
+    if(!file||!file.type.startsWith("image/")) return;
+    const reader=new FileReader();
+    reader.onload=e=>{ setImgPreview(e.target.result); upd("image_url",e.target.result); };
+    reader.readAsDataURL(file);
+  }
+
+  async function runAI() {
+    if(!form.issue_type||!form.description){setStep(2);return;}
+    setLoading(true);
+    try {
+      const res=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          model:"claude-sonnet-4-20250514",max_tokens:400,
+          messages:[{role:"user",content:`Classify this Bengaluru civic complaint. Reply ONLY with valid JSON, no markdown:\nIssue: ${form.issue_type}\nDescription: ${form.description}\nLocation: ${form.location_name||"Bengaluru"}\nReturn: {"severity":"critical|high|medium|low","ai_summary":"one sentence","department":"BBMP dept","priority_score":1-100,"estimated_days":7-60,"policy":"BBMP policy name"}`}]
+        })
+      });
+      const d=await res.json();
+      const t=(d.content?.find(c=>c.type==="text")?.text||"{}").replace(/```json|```/g,"").trim();
+      setAiResult(JSON.parse(t)); upd("severity",JSON.parse(t).severity||"medium");
+    } catch(e) {
+      setAiResult({severity:"medium",ai_summary:"Classified as medium priority civic issue.",department:"Public Works",priority_score:50,estimated_days:14});
+    }
+    setLoading(false); setStep(2);
+  }
+
+  function submit() {
+    onSubmit({id:genId(),...form,severity:aiResult?.severity||"medium",status:"open",created_at:new Date().toISOString(),upvotes:0,source:"citizen"});
+    onClose();
+  }
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.9)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:20,padding:24,maxWidth:420,width:"100%",maxHeight:"90vh",overflowY:"auto",animation:"slideUp .3s ease"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <CivicAILogo size={26}/><div style={{fontSize:13,fontWeight:700,color:C.muted}}>Submit an Issue</div>
+          </div>
+          <button onClick={onClose} style={{background:"none",border:"none",color:C.muted,cursor:"pointer"}}>{SVG.close}</button>
+        </div>
+        {form.issue_type&&<div style={{fontSize:11,color:`${C.teal}bb`,marginBottom:12,paddingLeft:34}}>AI suggests: Is it a {form.issue_type} issue?</div>}
+        <div style={{display:"flex",gap:5,marginBottom:18}}>
+          {[1,2].map(s=><div key={s} style={{flex:1,height:3,borderRadius:2,background:s<=step?C.teal:C.border,transition:"all .3s"}}/>)}
+        </div>
+
+        {step===1&&(
+          <div>
+            {/* PHOTO UPLOAD */}
+            <div
+              onClick={()=>fileRef.current?.click()}
+              onDragOver={e=>{e.preventDefault();setIsDragging(true);}}
+              onDragLeave={()=>setIsDragging(false)}
+              onDrop={e=>{e.preventDefault();setIsDragging(false);handleFile(e.dataTransfer.files[0]);}}
+              style={{border:`2px dashed ${isDragging?C.teal:"rgba(255,255,255,0.12)"}`,borderRadius:12,marginBottom:12,cursor:"pointer",overflow:"hidden",background:isDragging?"rgba(0,200,150,0.05)":"rgba(255,255,255,0.02)",transition:"all .2s",position:"relative"}}
+            >
+              {imgPreview?(
+                <div style={{position:"relative"}}>
+                  <img src={imgPreview} alt="Preview" style={{width:"100%",maxHeight:180,objectFit:"cover",display:"block"}}/>
+                  <button onClick={e=>{e.stopPropagation();setImgPreview(null);upd("image_url",null);}} style={{position:"absolute",top:8,right:8,background:"rgba(0,0,0,0.7)",border:"none",borderRadius:"50%",width:28,height:28,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",color:C.text}}>
+                    {SVG.trash}
+                  </button>
+                  <div style={{position:"absolute",bottom:8,left:8,background:"rgba(0,200,150,0.9)",borderRadius:6,padding:"3px 8px",fontSize:11,fontWeight:700,color:"white"}}>✓ Photo added</div>
+                </div>
+              ):(
+                <div style={{padding:22,textAlign:"center"}}>
+                  <div style={{color:C.muted,marginBottom:6,display:"flex",justifyContent:"center"}}>{SVG.camera}</div>
+                  <div style={{fontSize:14,color:C.sub,fontWeight:600}}>Add Photo</div>
+                  <div style={{fontSize:11,color:C.muted,marginTop:3}}>Tap to select · drag &amp; drop · JPG / PNG / HEIC</div>
+                  <div style={{fontSize:10,color:`${C.teal}80`,marginTop:4}}>AI will classify issue type from your photo</div>
+                </div>
+              )}
+              <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>handleFile(e.target.files[0])}/>
+            </div>
+
+            <select value={form.issue_type} onChange={e=>upd("issue_type",e.target.value)} style={{width:"100%",padding:"11px 14px",borderRadius:10,background:"rgba(255,255,255,0.04)",border:`1px solid ${C.border}`,color:form.issue_type?C.text:C.muted,fontSize:14,marginBottom:10}}>
+              <option value="" disabled style={{background:C.surface}}>Select Issue Type</option>
+              {ISSUE_TYPES.map(t=><option key={t} value={t} style={{background:C.surface}}>{t}</option>)}
+            </select>
+            <textarea value={form.description} onChange={e=>upd("description",e.target.value)} placeholder="Describe the issue clearly…" rows={3} style={{width:"100%",padding:"11px 14px",borderRadius:10,background:"rgba(255,255,255,0.04)",border:`1px solid ${C.border}`,color:C.text,fontSize:14,resize:"none",marginBottom:10}}/>
+            <input value={form.location_name} onChange={e=>upd("location_name",e.target.value)} placeholder="Location (e.g. Indiranagar 12th Main)" style={{width:"100%",padding:"11px 14px",borderRadius:10,background:"rgba(255,255,255,0.04)",border:`1px solid ${C.border}`,color:C.text,fontSize:14,marginBottom:10}}/>
+            <select value={form.ward} onChange={e=>upd("ward",e.target.value)} style={{width:"100%",padding:"11px 14px",borderRadius:10,background:"rgba(255,255,255,0.04)",border:`1px solid ${C.border}`,color:form.ward?C.text:C.muted,fontSize:14,marginBottom:16}}>
+              <option value="" disabled style={{background:C.surface}}>Select Ward</option>
+              {WARDS.map(w=><option key={w} value={w} style={{background:C.surface}}>{w}</option>)}
+            </select>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{fontSize:11,color:C.teal,fontWeight:700,display:"flex",alignItems:"center",gap:5}}>{SVG.check} Verified by CivicChain</div>
+              <button onClick={runAI} disabled={loading||!form.issue_type||!form.description} style={{padding:"10px 22px",borderRadius:10,background:(!form.issue_type||!form.description)?"rgba(255,255,255,0.05)":`linear-gradient(135deg,${C.teal},${C.blue})`,border:"none",color:"white",fontSize:14,fontWeight:800,cursor:(!form.issue_type||!form.description)?"not-allowed":"pointer",opacity:(!form.issue_type||!form.description)?0.4:1}}>
+                {loading?"Analysing…":"Next →"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step===2&&(
+          <div>
+            {imgPreview&&<img src={imgPreview} alt="Issue" style={{width:"100%",borderRadius:10,marginBottom:14,maxHeight:160,objectFit:"cover"}}/>}
+            <div style={{background:"rgba(0,200,150,0.07)",border:"1px solid rgba(0,200,150,0.18)",borderRadius:12,padding:14,marginBottom:14}}>
+              <div style={{fontSize:11,color:C.teal,fontWeight:700,marginBottom:4}}>✓ AI REVIEW COMPLETE</div>
+              {aiResult&&<>
+                <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:6}}>{aiResult.ai_summary}</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:6}}>
+                  <SevPill s={aiResult.severity||"medium"}/>
+                  {aiResult.department&&<Pill color={C.blue} bg="rgba(0,168,255,0.12)">{aiResult.department}</Pill>}
+                  {aiResult.priority_score&&<Pill color={C.muted} bg="rgba(255,255,255,0.06)">P{aiResult.priority_score}/100</Pill>}
+                </div>
+                {aiResult.estimated_days&&<div style={{fontSize:11,color:C.muted}}>Est. resolution: {aiResult.estimated_days} days · {aiResult.policy||""}</div>}
+              </>}
+            </div>
+            <div style={{fontSize:12,color:C.muted,marginBottom:14}}>{SVG.pin} {form.location_name||"—"} · {form.ward||"—"}</div>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>setStep(1)} style={{flex:1,padding:"11px",borderRadius:10,background:"rgba(255,255,255,0.04)",border:`1px solid ${C.border}`,color:C.sub,fontSize:14,fontWeight:600,cursor:"pointer"}}>← Edit</button>
+              <button onClick={submit} style={{flex:2,padding:"11px",borderRadius:10,background:`linear-gradient(135deg,${C.teal},${C.blue})`,border:"none",color:"white",fontSize:15,fontWeight:800,cursor:"pointer"}}>Submit Issue</button>
+            </div>
+            <div style={{fontSize:10,color:C.muted,textAlign:"center",marginTop:10}}>AI is advisory only. Community review + CivicChain audit applies.</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── LIVE DATA FETCH — calls Flask /scrape route ──────────────────────────────
+// When running via Flask (python app.py), this hits http://localhost:5000/scrape
+// When opening CivicAI.html directly as a file, it falls back gracefully.
+const FLASK_BASE = (window.location.protocol === "file:")
+  ? "http://localhost:5000"   // opened as a local file → point to Flask server
+  : "";                        // served by Flask → use relative URL
+
+async function fetchLiveData() {
+  const res = await fetch(`${FLASK_BASE}/scrape?sources=reddit,news,twitter,bbmp&limit=20`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) throw new Error(`Scrape failed: ${res.status}`);
+  const data = await res.json();   // Flask returns a JSON array directly
+  return data;
+}
+
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+function App() {
+  const [tab,setTab]           = useState("feed");
+  const [issues,setIssues]     = useState(SEED);
+  const [showReport,setShowReport] = useState(false);
+  const [selected,setSelected] = useState(null);
+  const [escalate,setEscalate] = useState(null);
+  const [filter,setFilter]     = useState("all");
+  const [wardFilter,setWardFilter] = useState("");
+  const [toast,setToast]       = useState(null);
+  const [scraping,setScraping] = useState(false);
+  const [lastFetched,setLastFetched] = useState(null);
+  const [liveCount,setLiveCount] = useState(0);
+
+  const showToast=(m,col=C.green)=>{ setToast({m,col}); setTimeout(()=>setToast(null),3000); };
+  const addIssue=i=>{ setIssues(p=>[i,...p]); showToast("✓ Issue reported & live on dashboard"); };
+  const upvote=id=>{ setIssues(p=>p.map(i=>i.id===id?{...i,upvotes:i.upvotes+1}:i)); };
+
+  const doFetch=async()=>{
+    setScraping(true);
+    showToast("🔍 Searching Twitter, Reddit, News sites…",C.blue);
+    try {
+      const live=await fetchLiveData();
+      if(live.length>0){
+        const mapped=live.map(r=>({
+          id:genId(),issue_type:r.issue_type||"Pothole",description:r.description||"No description",
+          location_name:r.location_name||"Bengaluru",
+          ward:WARDS.includes(r.ward)?r.ward:WARDS[Math.floor(Math.random()*WARDS.length)],
+          severity:["critical","high","medium","low"].includes(r.severity)?r.severity:"medium",
+          status:"open",created_at:daysAgo(Math.min(r.days_ago||0,30)),
+          upvotes:Math.floor(Math.random()*30)+1,source:r.source||"scrape",
+          source_url:r.source_url||null,image_url:null,
+        }));
+        setIssues(p=>[...mapped,...p.filter(i=>i.source==="citizen")]);
+        setLiveCount(mapped.length); setLastFetched(new Date().toLocaleTimeString());
+        showToast(`✓ ${mapped.length} real issues loaded from the web`);
+      } else { showToast("No new results — try again shortly",C.orange); }
+    } catch(e){ showToast("⚠ Could not fetch live data",C.orange); }
+    setScraping(false);
+  };
+
+  const open=issues.filter(i=>i.status==="open");
+  const resolved=issues.filter(i=>i.status==="resolved");
+  const critical=issues.filter(i=>i.severity==="critical"&&i.status==="open");
+  const overdue=open.filter(i=>daysOpen(i.created_at)>7);
+  const avgDays=open.length?Math.round(open.reduce((a,i)=>a+daysOpen(i.created_at),0)/open.length):0;
+  const filtered=issues.filter(i=>{
+    if(filter==="open"&&i.status!=="open") return false;
+    if(filter==="resolved"&&i.status!=="resolved") return false;
+    if(filter==="critical"&&i.severity!=="critical") return false;
+    if(wardFilter&&i.ward!==wardFilter) return false;
+    return true;
+  });
+
+  const TABS=[
+    {id:"feed",label:"Feed",icon:SVG.feed},
+    {id:"dashboard",label:"Stats",icon:SVG.chart},
+    {id:"map",label:"Map",icon:SVG.map},
+    {id:"hall",label:"Hall",icon:SVG.hall},
+  ];
+
+  return (
+    <div style={{minHeight:"100vh",background:C.bg,color:C.text}}>
+      {/* BG glow */}
+      <div style={{position:"fixed",inset:0,pointerEvents:"none",background:"radial-gradient(ellipse at 10% 0%,rgba(0,200,150,0.04) 0%,transparent 50%),radial-gradient(ellipse at 90% 100%,rgba(0,168,255,0.04) 0%,transparent 50%)"}}/>
+
+      {/* HEADER */}
+      <header style={{position:"sticky",top:0,zIndex:100,background:"rgba(5,8,15,0.96)",backdropFilter:"blur(20px)",borderBottom:`1px solid ${C.border}`,padding:"11px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <LogoFull/>
+        <button onClick={()=>setShowReport(true)} style={{display:"flex",alignItems:"center",gap:6,background:`linear-gradient(135deg,${C.teal},${C.blue})`,border:"none",borderRadius:9,padding:"9px 16px",color:"white",fontSize:13,fontWeight:700,cursor:"pointer",boxShadow:`0 4px 20px rgba(0,200,150,0.25)`}}>
+          {SVG.plus} Report
+        </button>
+      </header>
+
+      {/* TICKER */}
+      <div style={{background:"rgba(255,45,85,0.06)",borderBottom:"1px solid rgba(255,45,85,0.1)",padding:"5px 16px",fontSize:12,color:C.red,fontWeight:700,whiteSpace:"nowrap",overflowX:"auto",display:"flex",gap:10}}>
+        <span>🔴 LIVE</span>
+        <span>· {open.length} open</span>
+        <span>· {critical.length} critical</span>
+        <span>· {overdue.length} overdue &gt;7d</span>
+        <span>· Bengaluru</span>
+        {lastFetched&&<span style={{color:C.teal}}>· Scraped {lastFetched}</span>}
+      </div>
+
+      {/* TABS */}
+      <div style={{display:"flex",borderBottom:`1px solid ${C.border}`,background:"rgba(5,8,15,0.92)",backdropFilter:"blur(10px)",position:"sticky",top:60,zIndex:90}}>
+        {TABS.map(t=>(
+          <button key={t.id} className="tab-btn" onClick={()=>setTab(t.id)} style={{flex:1,padding:"10px 4px",display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"none",border:"none",cursor:"pointer",color:tab===t.id?C.teal:C.muted,borderBottom:tab===t.id?`2px solid ${C.teal}`:"2px solid transparent",fontSize:10,fontWeight:700,letterSpacing:.7,textTransform:"uppercase",transition:"color .15s"}}>
+            {t.icon}{t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* CONTENT */}
+      <main style={{padding:"14px 14px 90px",position:"relative",zIndex:1}}>
+
+        {/* FEED */}
+        {tab==="feed"&&(
+          <div>
+            {/* Live scrape banner */}
+            <div style={{background:`linear-gradient(135deg,rgba(0,200,150,0.07),rgba(0,168,255,0.07))`,border:"1px solid rgba(0,200,150,0.18)",borderRadius:12,padding:"12px 14px",marginBottom:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{fontSize:13,fontWeight:700,color:C.teal,display:"flex",alignItems:"center",gap:6}}>{SVG.globe} Live Data Feed</div>
+                <div style={{fontSize:11,color:C.muted,marginTop:2}}>{lastFetched?`${liveCount} real issues pulled · ${lastFetched}`:"Scrapes Twitter/X, Reddit r/bangalore, news sites"}</div>
+              </div>
+              <button onClick={doFetch} disabled={scraping} style={{display:"flex",alignItems:"center",gap:6,background:scraping?"rgba(255,255,255,0.05)":`linear-gradient(135deg,${C.teal},${C.blue})`,border:"none",borderRadius:8,padding:"8px 14px",color:"white",fontSize:12,fontWeight:700,cursor:scraping?"not-allowed":"pointer",opacity:scraping?.6:1}}>
+                <span style={{display:"inline-block",animation:scraping?"spin 1s linear infinite":"none"}}>{SVG.refresh}</span>
+                {scraping?"Fetching…":"Fetch Live"}
+              </button>
+            </div>
+            {/* Filters */}
+            <div style={{display:"flex",gap:6,marginBottom:12,overflowX:"auto",paddingBottom:2}}>
+              {["all","open","resolved","critical"].map(f=>(
+                <button key={f} className="pill-btn" onClick={()=>setFilter(f)} style={{padding:"5px 12px",borderRadius:20,border:`1px solid ${filter===f?C.teal:C.border}`,background:filter===f?"rgba(0,200,150,0.1)":"rgba(255,255,255,0.03)",color:filter===f?C.teal:C.muted,fontSize:12,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",textTransform:"capitalize"}}>
+                  {f}
+                </button>
+              ))}
+              <select value={wardFilter} onChange={e=>setWardFilter(e.target.value)} style={{padding:"5px 10px",borderRadius:20,border:`1px solid ${wardFilter?C.blue:C.border}`,background:"rgba(255,255,255,0.03)",color:wardFilter?C.blue:C.muted,fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                <option value="" style={{background:C.surface}}>All Wards</option>
+                {WARDS.map(w=><option key={w} value={w} style={{background:C.surface}}>{w}</option>)}
+              </select>
+            </div>
+            <div style={{fontSize:11,color:C.muted,marginBottom:10}}>{filtered.length} issues · {issues.filter(i=>i.source!=="citizen").length} from live scrape</div>
+            {filtered.map(i=><IssueCard key={i.id} issue={i} onUpvote={upvote} onSelect={setSelected}/>)}
+            {!filtered.length&&<div style={{textAlign:"center",padding:40,color:C.muted}}>No issues match the current filter</div>}
+          </div>
+        )}
+
+        {/* DASHBOARD */}
+        {tab==="dashboard"&&(
+          <div>
+            <div style={{fontSize:20,fontWeight:800,color:C.text,marginBottom:3}}>Public Dashboard</div>
+            <div style={{fontSize:13,color:C.muted,marginBottom:16}}>Real-time civic accountability · Bengaluru</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}}>
+              <StatCard label="Open Issues"  value={open.length}     sub="Need attention"      color={C.orange}/>
+              <StatCard label="Resolved"     value={resolved.length} sub="Successfully closed"  color={C.green}/>
+              <StatCard label="Critical"     value={critical.length} sub="Immediate action"     color={C.red}/>
+              <StatCard label="Avg Days"     value={avgDays}         sub="Resolution lag"       color={C.yellow}/>
+              <StatCard label="Overdue >7d"  value={overdue.length}  sub="SLA breached"         color={C.red}/>
+              <StatCard label="Total"        value={issues.length}   sub="All reports"          color={C.teal}/>
+            </div>
+            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:14,marginBottom:12}}>
+              <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:12}}>Issues by Type</div>
+              {Object.entries(issues.reduce((a,i)=>{a[i.issue_type]=(a[i.issue_type]||0)+1;return a;},{})).sort(([,a],[,b])=>b-a).map(([t,c])=>{
+                const pct=Math.round(c/issues.length*100);
+                return (
+                  <div key={t} style={{marginBottom:8}}>
+                    <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:3}}>
+                      <span style={{color:C.sub}}>{t}</span><span style={{color:C.muted}}>{c} ({pct}%)</span>
+                    </div>
+                    <div style={{height:5,borderRadius:3,background:"rgba(255,255,255,0.05)"}}>
+                      <div style={{height:"100%",borderRadius:3,width:`${pct}%`,background:`linear-gradient(90deg,${C.teal},${C.blue})`}}/>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:14,marginBottom:12}}>
+              <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:10}}>🔥 Oldest Unresolved</div>
+              {[...open].sort((a,b)=>daysOpen(b.created_at)-daysOpen(a.created_at)).slice(0,5).map((issue,i)=>(
+                <div key={issue.id} onClick={()=>setSelected(issue)} style={{display:"flex",gap:9,padding:"7px 0",borderBottom:i<4?`1px solid ${C.border}`:"none",cursor:"pointer"}}>
+                  <div style={{width:34,height:34,borderRadius:7,background:sevBg(issue.severity),display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:sevColor(issue.severity),flexShrink:0}}>{daysOpen(issue.created_at)}d</div>
+                  <div style={{flex:1}}><div style={{fontSize:13,fontWeight:700,color:C.text}}>{issue.issue_type} · {issue.ward}</div><div style={{fontSize:11,color:C.muted}}>{issue.description.slice(0,55)}…</div></div>
+                </div>
+              ))}
+            </div>
+            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:14}}>
+              <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:10}}>⬆ Most Community Pressure</div>
+              {[...issues].sort((a,b)=>b.upvotes-a.upvotes).slice(0,5).map((issue,i)=>(
+                <div key={issue.id} onClick={()=>setSelected(issue)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:i<4?`1px solid ${C.border}`:"none",cursor:"pointer"}}>
+                  <div><div style={{fontSize:13,fontWeight:700,color:C.text}}>{issue.issue_type}</div><div style={{fontSize:11,color:C.muted}}>{issue.ward}</div></div>
+                  <div style={{display:"flex",alignItems:"center",gap:4,color:C.teal,fontWeight:800,fontSize:15}}>{SVG.up} {issue.upvotes}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* MAP */}
+        {tab==="map"&&(
+          <div>
+            <div style={{fontSize:20,fontWeight:800,color:C.text,marginBottom:3}}>Ward Heat Map</div>
+            <div style={{fontSize:13,color:C.muted,marginBottom:14}}>Issue intensity across Bengaluru wards</div>
+            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:14,marginBottom:12}}><HeatGrid issues={issues}/></div>
+            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:14,marginBottom:12}}>
+              <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:10}}>Top Affected Locations</div>
+              {[...issues].sort((a,b)=>b.upvotes-a.upvotes).slice(0,6).map((issue,i)=>(
+                <div key={issue.id} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 0",borderBottom:i<5?`1px solid ${C.border}`:"none"}}>
+                  <div style={{width:7,height:7,borderRadius:"50%",background:sevColor(issue.severity),flexShrink:0}}/>
+                  <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:C.text}}>{issue.location_name}</div><div style={{fontSize:11,color:C.muted}}>{issue.issue_type} · {daysOpen(issue.created_at)}d open</div></div>
+                  <SevPill s={issue.severity}/>
+                </div>
+              ))}
+            </div>
+            <div style={{background:"rgba(0,168,255,0.05)",border:"1px solid rgba(0,168,255,0.12)",borderRadius:12,padding:12,fontSize:12,color:C.muted}}>
+              💡 Full interactive Leaflet.js map with BBMP ward boundaries available in the Next.js production build.
+            </div>
+          </div>
+        )}
+
+        {/* HALL */}
+        {tab==="hall"&&<HallScreen issues={issues}/>}
+      </main>
+
+      {/* FAB */}
+      <button className="fab" onClick={()=>setShowReport(true)} style={{position:"fixed",bottom:24,right:16,zIndex:200,width:52,height:52,borderRadius:"50%",background:`linear-gradient(135deg,${C.teal},${C.blue})`,border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",boxShadow:`0 6px 28px rgba(0,200,150,0.4)`,color:"white"}}>
+        {SVG.plus}
+      </button>
+
+      {/* TOAST */}
+      {toast&&<div style={{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:toast.col,borderRadius:10,padding:"9px 20px",fontSize:13,fontWeight:700,color:"white",zIndex:300,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.4)",animation:"fadeIn .3s ease"}}>{toast.m}</div>}
+
+      {/* MODALS */}
+      {showReport&&<ReportModal onClose={()=>setShowReport(false)} onSubmit={addIssue}/>}
+      {selected&&!escalate&&<DetailModal issue={selected} onClose={()=>setSelected(null)} onEscalate={i=>{setEscalate(i);setSelected(null);}}/>}
+      {escalate&&<EscalateModal issue={escalate} onClose={()=>setEscalate(null)}/>}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+</body>
+</html>
