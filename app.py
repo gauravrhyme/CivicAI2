@@ -653,7 +653,8 @@ def index():
     except FileNotFoundError:
         return "<h2 style='font-family:sans-serif;padding:40px'>⚠ CivicAI.html not found beside app.py</h2>",404
 
-@app.route("/health"); @app.route("/api/health")
+@app.route("/health")
+@app.route("/api/health")
 def health():
     db = get_db()
     return jsonify({"status":"ok","version":"6.0",
