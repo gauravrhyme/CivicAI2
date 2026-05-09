@@ -1,7 +1,30 @@
-Flask==3.1.0
-Flask-Cors==5.0.0
-Flask-SQLAlchemy==3.1.1
-SQLAlchemy==2.0.36
+# CivicAI v6 — Python dependencies
+# Render build command: pip install -r requirements.txt
+# Local install:       pip install -r requirements.txt
+ 
+# ── Core ─────────────────────────────────────────────────────
+flask==3.0.3
+flask-cors==4.0.1
 requests==2.32.3
-gunicorn==23.0.0
-psycopg2-binary==2.9.10
+ 
+# ── Background ingestion scheduler ───────────────────────────
+apscheduler==3.10.4
+ 
+# ── News RSS parsing ─────────────────────────────────────────
+feedparser==6.0.11
+ 
+# ── Reddit ingestion (authenticated — much more reliable) ────
+# Register free app at: https://www.reddit.com/prefs/apps
+# Then set env vars on Render:
+#   REDDIT_CLIENT_ID=your_id
+#   REDDIT_CLIENT_SECRET=your_secret
+praw==7.7.1
+ 
+# ── XML parsing (built into Python, listed for clarity) ──────
+# xml.etree.ElementTree — stdlib, no install needed
+ 
+# ── Database ─────────────────────────────────────────────────
+# sqlite3 — stdlib, no install needed
+# For production upgrade to PostgreSQL, add:
+# psycopg2-binary==2.9.9
+ 
