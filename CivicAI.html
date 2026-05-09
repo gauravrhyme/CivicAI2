@@ -7,40 +7,34 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
 <style>
-/* ═══════════════ RESET ═══════════════ */
+/* ═══════════ RESET & BASE ═══════════ */
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow-x:hidden;}
 body{background:#0C0F1A;color:#E8EDF5;font-family:'Inter',-apple-system,sans-serif;font-size:14px;line-height:1.5;}
 :root{
-  --bg:#0C0F1A; --sur:#111520; --card:#161B2A; --ch:#1C2235;
-  --b:rgba(255,255,255,0.07); --bh:rgba(255,255,255,0.13);
-  --teal:#00C896; --blue:#3B9EFF; --red:#FF3355; --orange:#FF8C00;
-  --yellow:#FFD60A; --green:#30D158; --purple:#9B6DFF;
-  --text:#E8EDF5; --sub:rgba(232,237,245,0.55); --muted:rgba(232,237,245,0.30); --faint:rgba(232,237,245,0.07);
-  --sb:240px; --tb:60px;
+  --bg:#0C0F1A;--sur:#111520;--card:#161B2A;--ch:#1C2235;
+  --b:rgba(255,255,255,0.07);--bh:rgba(255,255,255,0.13);
+  --teal:#00C896;--blue:#3B9EFF;--red:#FF3355;--orange:#FF8C00;
+  --yellow:#FFD60A;--green:#30D158;--purple:#9B6DFF;
+  --text:#E8EDF5;--sub:rgba(232,237,245,0.55);--muted:rgba(232,237,245,0.30);--faint:rgba(232,237,245,0.07);
+  --sb:240px;--tb:60px;
 }
 select,textarea,input{outline:none;font-family:inherit;}
-button{font-family:inherit;}
+button{font-family:inherit;cursor:pointer;}
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}
- 
-/* ═══════════════ ANIMATIONS ═══════════════ */
 @keyframes spin{to{transform:rotate(360deg);}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
 @keyframes ticker{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
 @keyframes countIn{from{opacity:0;transform:scale(.82);}to{opacity:1;transform:scale(1);}}
- 
-/* ═══════════════ LAYOUT ═══════════════ */
+
+/* ═══════════ LAYOUT ═══════════ */
 #shell{display:flex;height:100vh;overflow:hidden;}
- 
+
 /* SIDEBAR */
-#sb{
-  width:var(--sb);flex-shrink:0;background:var(--sur);border-right:1px solid var(--b);
-  display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;
-  position:relative;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);
-}
+#sb{width:var(--sb);flex-shrink:0;background:var(--sur);border-right:1px solid var(--b);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;position:relative;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);}
 .sb-logo{padding:18px 18px 14px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:10px;flex-shrink:0;}
 .sb-logo .civic{font-size:20px;font-weight:900;color:var(--teal);}
 .sb-logo .ai{font-size:20px;font-weight:900;color:var(--blue);}
@@ -51,54 +45,48 @@ button{font-family:inherit;}
 .nl{display:flex;align-items:center;gap:9px;padding:8px 14px;margin:1px 8px;border-radius:9px;color:var(--sub);font-size:13px;font-weight:500;border:1px solid transparent;cursor:pointer;transition:all .15s;}
 .nl:hover{background:var(--faint);color:var(--text);}
 .nl.on{background:linear-gradient(135deg,rgba(0,200,150,.1),rgba(59,158,255,.07));border-color:rgba(0,200,150,.18);color:var(--teal);font-weight:600;}
-.nl svg{opacity:.65;flex-shrink:0;}
-.nl.on svg{opacity:1;}
+.nl svg{opacity:.65;flex-shrink:0;}.nl.on svg{opacity:1;}
 .nb{margin-left:auto;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;background:rgba(255,51,85,.15);color:var(--red);}
-.sb-rbtn{margin:10px 14px;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#00C896,#0070F3);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 4px 18px rgba(0,200,150,.22);transition:opacity .2s,transform .18s;cursor:pointer;}
+.sb-rbtn{margin:10px 14px;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#00C896,#0070F3);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 4px 18px rgba(0,200,150,.22);transition:opacity .2s,transform .18s;}
 .sb-rbtn:hover{opacity:.88;transform:translateY(-1px);}
 .sb-foot{padding:14px 18px;border-top:1px solid var(--b);margin-top:auto;font-size:10.5px;color:var(--muted);}
 #sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;}
 #sb-ov.show{display:block;}
- 
+
 /* MAIN */
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
- 
+
 /* TOPBAR */
-#topbar{
-  height:var(--tb);background:rgba(12,15,26,.95);backdrop-filter:blur(18px);
-  border-bottom:1px solid var(--b);display:flex;align-items:center;gap:10px;
-  padding:0 22px;flex-shrink:0;z-index:100;
-}
+#topbar{height:var(--tb);background:rgba(12,15,26,.95);backdrop-filter:blur(18px);border-bottom:1px solid var(--b);display:flex;align-items:center;gap:10px;padding:0 22px;flex-shrink:0;z-index:100;}
 #tb-title{font-size:16px;font-weight:700;color:var(--text);flex:1;}
-.search-box{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bh);border-radius:8px;padding:6px 12px;min-width:180px;}
-.search-box input{background:none;border:none;color:var(--text);font-size:13px;width:100%;}
-.search-box input::placeholder{color:var(--muted);}
+.srch-box{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bh);border-radius:8px;padding:6px 12px;min-width:180px;}
+.srch-box input{background:none;border:none;color:var(--text);font-size:13px;width:100%;}
+.srch-box input::placeholder{color:var(--muted);}
 .live-pill{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:rgba(255,51,85,.1);border:1px solid rgba(255,51,85,.2);font-size:10.5px;font-weight:700;color:var(--red);white-space:nowrap;font-family:'JetBrains Mono',monospace;}
 .live-dot{width:5px;height:5px;border-radius:50%;background:var(--red);animation:pulse 1.1s infinite;}
-.fetch-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#00C896,#0070F3);color:#fff;font-size:12px;font-weight:700;box-shadow:0 3px 12px rgba(0,200,150,.2);transition:opacity .18s,transform .18s;cursor:pointer;white-space:nowrap;}
+.fetch-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#00C896,#0070F3);color:#fff;font-size:12px;font-weight:700;box-shadow:0 3px 12px rgba(0,200,150,.2);transition:opacity .18s,transform .18s;white-space:nowrap;}
 .fetch-btn:hover{opacity:.85;transform:translateY(-1px);}
 .fetch-btn:disabled{opacity:.4;transform:none;cursor:not-allowed;}
-.fetch-btn .spin{animation:spin 1s linear infinite;display:inline-flex;}
-.hbtn{background:none;border:none;color:var(--sub);display:flex;padding:4px;border-radius:6px;cursor:pointer;}
- 
+.hbtn{background:none;border:none;color:var(--sub);display:flex;padding:4px;border-radius:6px;}
+
 /* REFRESH BAR */
 #rbar{height:2px;background:linear-gradient(90deg,var(--teal),var(--blue));transform-origin:left;flex-shrink:0;}
- 
+
+/* DATA MODE BANNER — shows DEMO vs LIVE */
+#mode-banner{padding:5px 22px;font-size:11px;font-weight:700;text-align:center;display:none;}
+#mode-banner.demo{display:block;background:rgba(255,214,10,.08);border-bottom:1px solid rgba(255,214,10,.2);color:var(--yellow);}
+#mode-banner.live{display:block;background:rgba(0,200,150,.07);border-bottom:1px solid rgba(0,200,150,.15);color:var(--teal);}
+
 /* TICKER */
-#ticker{
-  background:rgba(255,51,85,.05);border-bottom:1px solid rgba(255,51,85,.1);
-  overflow:hidden;flex-shrink:0;font-size:11px;font-weight:700;
-  color:var(--red);font-family:'JetBrains Mono',monospace;
-  display:flex;align-items:center;padding:4px 0;
-}
-.tick-track{display:flex;gap:32px;white-space:nowrap;animation:ticker 30s linear infinite;}
-.tick-track:hover{animation-play-state:paused;}
-.tick-item{display:flex;align-items:center;gap:6px;flex-shrink:0;}
- 
-/* SCROLL AREA */
+#ticker{background:rgba(255,51,85,.05);border-bottom:1px solid rgba(255,51,85,.1);overflow:hidden;flex-shrink:0;font-size:11px;font-weight:700;color:var(--red);font-family:'JetBrains Mono',monospace;display:flex;align-items:center;padding:4px 0;}
+.tk-track{display:flex;gap:32px;white-space:nowrap;animation:ticker 32s linear infinite;}
+.tk-track:hover{animation-play-state:paused;}
+.tk-item{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+
+/* SCROLL */
 #scroll{flex:1;overflow-y:auto;overflow-x:hidden;}
 #content{padding:20px 24px 90px;}
- 
+
 /* SECTION HEADER */
 .sh{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;}
 .sh-title{font-size:21px;font-weight:800;color:var(--text);}
@@ -106,7 +94,7 @@ button{font-family:inherit;}
 .sh-act{font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;}
 .sh-act:hover{opacity:.75;}
 .lts{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:var(--teal);background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.14);border-radius:6px;padding:3px 9px;font-family:'JetBrains Mono',monospace;}
- 
+
 /* STAT GRID */
 .stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:20px;}
 .sc{background:var(--card);border:1px solid var(--b);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s;animation:countIn .5s ease backwards;}
@@ -116,7 +104,7 @@ button{font-family:inherit;}
 .sc-label{font-size:11.5px;font-weight:600;color:var(--sub);margin-top:5px;}
 .sc-hint{font-size:10px;color:var(--muted);margin-top:2px;}
 .sc-trend{position:absolute;top:12px;right:14px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;}
- 
+
 /* ALERT BARS */
 .alert{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:9px;margin-bottom:10px;border:1px solid;animation:fadeUp .3s ease;}
 .alert.crit{background:rgba(255,51,85,.07);border-color:rgba(255,51,85,.2);}
@@ -124,18 +112,17 @@ button{font-family:inherit;}
 .alert-ico{font-size:16px;flex-shrink:0;}
 .alert-txt{flex:1;font-size:12px;color:var(--sub);}
 .alert-cnt{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;flex-shrink:0;}
- 
+
 /* GRID LAYOUTS */
 .g2{display:grid;grid-template-columns:1fr 340px;gap:14px;margin-bottom:14px;}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
 .g2e{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
- 
+
 /* PANEL */
 .pan{background:var(--card);border:1px solid var(--b);border-radius:13px;padding:18px 20px;overflow:hidden;}
 .pt{font-size:13.5px;font-weight:700;color:var(--text);}
 .ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .pm{font-size:11px;color:var(--muted);}
- 
+
 /* TIMELINE */
 .tl{position:relative;padding-left:18px;}
 .tl::before{content:'';position:absolute;left:6px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,var(--teal),rgba(0,200,150,.1));border-radius:1px;}
@@ -148,7 +135,7 @@ button{font-family:inherit;}
 .tl-desc{font-size:12.5px;color:var(--sub);margin-top:5px;line-height:1.42;}
 .tl-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
 .tl-ts{font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
- 
+
 /* LEADERBOARD */
 .lbi{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--b);}
 .lbi:last-child{border-bottom:none;}
@@ -157,60 +144,52 @@ button{font-family:inherit;}
 .lb-track{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
 .lb-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1);}
 .lb-cnt{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;min-width:26px;text-align:right;flex-shrink:0;}
- 
-/* HEATMAP */
+
+/* HEAT GRID */
 .heat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;}
 .heat-cell{border-radius:7px;padding:8px 5px;text-align:center;cursor:pointer;transition:transform .15s;border:1px solid transparent;}
 .heat-cell:hover{transform:scale(1.05);}
-.heat-cell.sel{border-color:rgba(255,255,255,.3);box-shadow:0 0 0 2px rgba(255,255,255,.1);}
+.heat-cell.sel{border-color:rgba(255,255,255,.3);}
 .wn{font-size:9px;font-weight:700;line-height:1.2;}
 .wc{font-size:15px;font-weight:900;margin-top:1px;}
-.heat-leg{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;}
-.hl-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);}
-.hl-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
- 
-/* HALL PODIUM */
+
+/* HALL */
 .pod-wrap{display:flex;justify-content:center;align-items:flex-end;gap:12px;margin-bottom:20px;}
 .pod-col{flex:1;text-align:center;max-width:140px;}
 .pod-av{width:48px;height:48px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;}
 .pod-box{border-radius:9px;padding:8px 4px;margin-top:6px;}
-.pod-n{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;}
-.pod-v{font-size:20px;font-weight:900;}
-.pod-s{font-size:9px;color:var(--muted);}
 .orow{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--b);}
 .orow:last-child{border-bottom:none;}
 .oav{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
- 
+
 /* PROGRESS */
 .prog{height:5px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden;margin:3px 0;}
 .prog-f{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1);}
- 
-/* CLUSTER */
-.clus{background:var(--card);border:1px solid var(--b);border-left:3px solid var(--purple);border-radius:10px;padding:12px 14px;margin-bottom:8px;}
-.clus-lbl{font-size:12px;font-weight:700;color:var(--purple);margin-bottom:4px;}
-.clus-desc{font-size:12px;color:var(--sub);line-height:1.4;}
-.clus-cnt{font-size:11px;color:var(--muted);margin-top:4px;}
- 
+
+/* INGESTION STATUS */
+.src-card{background:var(--card);border:1px solid var(--b);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.src-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.src-dot.ok{background:var(--green);}
+.src-dot.fail{background:var(--red);}
+.src-dot.never{background:var(--muted);}
+.src-name{font-size:13px;font-weight:600;color:var(--text);flex:1;}
+.src-meta{font-size:11px;color:var(--muted);}
+
 /* FILTER ROW */
 .frow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
 .fc{padding:5px 11px;border-radius:20px;border:1px solid var(--b);background:rgba(255,255,255,.025);color:var(--muted);font-size:11.5px;font-weight:600;cursor:pointer;transition:all .15s;}
 .fc.on{border-color:var(--teal);background:rgba(0,200,150,.08);color:var(--teal);}
 .fc:hover:not(.on){border-color:var(--bh);color:var(--sub);}
-.fsel{padding:5px 10px;border-radius:20px;border:1px solid var(--b);background:rgba(255,255,255,.025);color:var(--muted);font-size:11.5px;font-weight:600;cursor:pointer;}
+.fsel{padding:5px 10px;border-radius:20px;border:1px solid var(--b);background:rgba(255,255,255,.025);color:var(--muted);font-size:11.5px;font-weight:600;max-width:200px;}
 .fsel option{background:#161B2A;}
- 
+
 /* TABS */
 .tabrow{display:flex;gap:2px;background:rgba(255,255,255,.04);border-radius:9px;padding:3px;margin-bottom:14px;}
 .tbtn{flex:1;padding:6px 10px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
 .tbtn.on{background:var(--ch);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.25);}
- 
-/* STICKY ACTION BAR */
-#abar{
-  position:fixed;bottom:0;right:0;left:var(--sb);
-  background:rgba(12,15,26,.96);backdrop-filter:blur(18px);
-  border-top:1px solid var(--b);padding:10px 22px;z-index:90;
-  display:flex;align-items:center;gap:10px;transition:left .3s;
-}
+
+/* ACTION BAR */
+#abar{position:fixed;bottom:0;right:0;left:var(--sb);background:rgba(12,15,26,.96);backdrop-filter:blur(18px);border-top:1px solid var(--b);padding:10px 22px;z-index:90;display:flex;align-items:center;gap:10px;transition:left .3s;}
 #ab-stat{flex:1;font-size:12px;color:var(--muted);}
 .ab-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:none;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .15s;}
 .ab-pri{background:linear-gradient(135deg,#00C896,#0070F3);color:#fff;box-shadow:0 3px 12px rgba(0,200,150,.2);}
@@ -218,21 +197,20 @@ button{font-family:inherit;}
 .ab-sec{background:var(--faint);color:var(--sub);border:1px solid var(--b);}
 .ab-sec:hover{background:rgba(255,255,255,.06);color:var(--text);}
 .ab-dng{background:rgba(255,51,85,.12);color:var(--red);border:1px solid rgba(255,51,85,.2);}
-.ab-dng:hover{background:rgba(255,51,85,.18);}
- 
+
 /* PILLS */
 .pill{display:inline-flex;align-items:center;font-size:9.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:2px 6px;border-radius:4px;}
 .spill{font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:4px;display:inline-flex;}
- 
-/* MODAL */
+
+/* MODALS */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px);animation:fadeUp .2s ease;}
 .modal{background:var(--sur);border:1px solid var(--bh);border-radius:18px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;animation:fadeUp .25s ease;}
 .mhead{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid var(--b);position:sticky;top:0;background:var(--sur);z-index:2;}
 .mtitle{font-size:16px;font-weight:800;color:var(--text);}
 .mbody{padding:18px 22px 22px;}
-.closebtn{background:none;border:none;color:var(--muted);display:flex;padding:4px;border-radius:5px;cursor:pointer;transition:color .15s;}
+.closebtn{background:none;border:none;color:var(--muted);display:flex;padding:4px;border-radius:5px;cursor:pointer;}
 .closebtn:hover{color:var(--text);}
- 
+
 /* FORM */
 .fl{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block;}
 .fi{width:100%;padding:9px 13px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid var(--bh);color:var(--text);font-size:13.5px;transition:border-color .15s;margin-bottom:11px;}
@@ -246,57 +224,45 @@ select.fi option{background:#161B2A;}
 .ai-lbl{font-size:9.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--teal);margin-bottom:5px;}
 .pdrop{border:2px dashed var(--bh);border-radius:11px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.015);margin-bottom:11px;position:relative;overflow:hidden;}
 .pdrop.drag{border-color:var(--teal);background:rgba(0,200,150,.04);}
-.pdrop:hover{border-color:rgba(255,255,255,.18);}
 .pprev{width:100%;max-height:170px;object-fit:cover;border-radius:8px;display:block;}
-.prmbtn{position:absolute;top:7px;right:7px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;}
+.prmbtn{position:absolute;top:7px;right:7px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:#fff;}
 .copybtn{width:100%;padding:8px;border-radius:8px;border:none;font-size:12.5px;font-weight:700;cursor:pointer;margin-top:6px;transition:all .15s;}
- 
+
+/* OFFICIALS PANEL */
+.off-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--b);}
+.off-row:last-child{border-bottom:none;}
+.off-role{font-size:10px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;min-width:130px;flex-shrink:0;margin-top:2px;}
+.off-name{font-size:13px;font-weight:600;color:var(--text);}
+.off-dept{font-size:11px;color:var(--muted);}
+
 /* TOAST */
 #toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--green);color:#fff;padding:9px 20px;border-radius:10px;font-size:12.5px;font-weight:700;z-index:3000;pointer-events:none;opacity:0;transition:opacity .25s,transform .25s;white-space:nowrap;box-shadow:0 6px 26px rgba(0,0,0,.35);}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
- 
+
 /* MOBILE NAV */
 #mnav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(17,21,32,.97);border-top:1px solid var(--b);backdrop-filter:blur(18px);padding:6px 0 max(6px,env(safe-area-inset-bottom));}
 .mn-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--muted);font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:4px 2px;cursor:pointer;transition:color .15s;}
 .mn-btn.on{color:var(--teal);}
- 
-/* ═══════════════ RESPONSIVE ═══════════════ */
-@media(max-width:1200px){
-  .stat-grid{grid-template-columns:repeat(3,1fr);}
-  .g2{grid-template-columns:1fr;}
-  .g3{grid-template-columns:1fr 1fr;}
-}
-@media(max-width:900px){
-  .g3{grid-template-columns:1fr;}
-  .g2e{grid-template-columns:1fr;}
-  .heat-grid{grid-template-columns:repeat(4,1fr);}
-}
+
+/* RESPONSIVE */
+@media(max-width:1200px){.stat-grid{grid-template-columns:repeat(3,1fr);}.g2{grid-template-columns:1fr;}}
+@media(max-width:900px){.g2e{grid-template-columns:1fr;}.heat-grid{grid-template-columns:repeat(4,1fr);}}
 @media(max-width:768px){
   :root{--sb:0px;}
   #sb{position:fixed;top:0;left:0;height:100vh;width:240px;z-index:300;transform:translateX(-240px);}
   #sb.open{transform:translateX(0);}
-  #abar{left:0;}
-  #content{padding:14px 14px 80px;}
-  #topbar{padding:0 14px;}
-  .search-box{display:none;}
-  .stat-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
-  .sc-num{font-size:22px;}
-  .sh-title{font-size:17px;}
-  .heat-grid{grid-template-columns:repeat(4,1fr);}
+  #abar{left:0;}#content{padding:14px 14px 80px;}#topbar{padding:0 14px;}
+  .srch-box{display:none;}.stat-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
+  .sc-num{font-size:22px;}.sh-title{font-size:17px;}.heat-grid{grid-template-columns:repeat(4,1fr);}
   #mnav{display:flex;}
 }
-@media(max-width:480px){
-  .stat-grid{grid-template-columns:1fr 1fr;}
-  .heat-grid{grid-template-columns:repeat(3,1fr);}
-  .pod-wrap{gap:6px;}
-}
+@media(max-width:480px){.stat-grid{grid-template-columns:1fr 1fr;}.heat-grid{grid-template-columns:repeat(3,1fr);}}
 </style>
 </head>
 <body>
 <div id="toast"></div>
- 
 <div id="shell">
-<!-- ════════════ SIDEBAR ════════════ -->
+<!-- ════════ SIDEBAR ════════ -->
 <nav id="sb">
   <div class="sb-logo">
     <svg width="34" height="34" viewBox="0 0 100 100" fill="none">
@@ -320,23 +286,23 @@ select.fi option{background:#161B2A;}
   <div class="nl" id="nl-feed" onclick="nav('feed')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Live Feed<span class="nb" id="sb-fc">0</span></div>
   <div class="nl" id="nl-map" onclick="nav('map')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>Ward Heat Map</div>
   <div class="sb-sec">Accountability</div>
-  <div class="nl" id="nl-hall" onclick="nav('hall')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="11"/><path d="M5 3H3v6a4 4 0 004 4h10a4 4 0 004-4V3h-2"/></svg>Hall of Fame / Shame</div>
-  <div class="nl" id="nl-clusters" onclick="nav('clusters')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Issue Clusters</div>
+  <div class="nl" id="nl-hall" onclick="nav('hall')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="11"/><path d="M5 3H3v6a4 4 0 004 4h10a4 4 0 004-4V3h-2"/></svg>Hall of Fame/Shame</div>
+  <div class="nl" id="nl-status" onclick="nav('status')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Data Sources</div>
   <div class="sb-sec">Actions</div>
   <div class="nl" onclick="openRpt()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Report Issue</div>
   <button class="sb-rbtn" onclick="openRpt()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Report an Issue</button>
-  <div class="sb-foot">CivicAI v4.0 · Bengaluru Pilot<br><span style="color:rgba(255,255,255,.1)">civicai.in · Open Source</span></div>
+  <div class="sb-foot">CivicAI v6.0 · Bengaluru Pilot<br><span style="color:rgba(255,255,255,.1)">civicai.in · Open Source</span></div>
 </nav>
 <div id="sb-ov" onclick="closeSB()"></div>
- 
-<!-- ════════════ MAIN ════════════ -->
+
+<!-- ════════ MAIN ════════ -->
 <div id="main">
   <div id="topbar">
     <button class="hbtn" onclick="toggleSB()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div id="tb-title">Dashboard</div>
-    <div class="search-box"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="srch" type="text" placeholder="Search issues, wards…" oninput="onSearch(this.value)"/></div>
+    <div class="srch-box"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="srch" type="text" placeholder="Search issues, wards…" oninput="onSrch(this.value)"/></div>
     <div class="live-pill"><span class="live-dot"></span><span id="tb-open">0</span> OPEN</div>
-    <button class="fetch-btn" id="fbtn" onclick="fetchData(true)">
+    <button class="fetch-btn" id="fbtn" onclick="fetchAll(true)">
       <span id="ficon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></span>
       <span id="flbl">Fetch Live</span>
     </button>
@@ -345,34 +311,34 @@ select.fi option{background:#161B2A;}
     </button>
   </div>
   <div id="rbar" style="transform:scaleX(1);transition:transform 1s linear;"></div>
-  <div id="ticker"><div style="display:flex;overflow:hidden;flex:1;"><div class="tick-track" id="tktrack">
-    <span class="tick-item">🔴 LIVE</span>
-    <span class="tick-item" id="tk1">— open issues</span>
-    <span class="tick-item" id="tk2">— critical</span>
-    <span class="tick-item" id="tk3">— overdue · Bengaluru</span>
-    <span class="tick-item" id="tk4">civicai.in</span>
-    <span class="tick-item">🔴 LIVE</span>
-    <span class="tick-item" id="tk5">—</span>
-    <span class="tick-item" id="tk6">—</span>
-    <span class="tick-item" id="tk7">—</span>
-    <span class="tick-item" id="tk8">civicai.in</span>
+  <div id="mode-banner"></div>
+  <div id="ticker"><div style="display:flex;overflow:hidden;flex:1;"><div class="tk-track" id="tkt">
+    <span class="tk-item">🔴 LIVE</span>
+    <span class="tk-item" id="tk1">— open issues</span>
+    <span class="tk-item" id="tk2">— critical</span>
+    <span class="tk-item" id="tk3">— overdue · Bengaluru</span>
+    <span class="tk-item" id="tk4">civicai.in</span>
+    <span class="tk-item">🔴 LIVE</span>
+    <span class="tk-item" id="tk5">—</span>
+    <span class="tk-item" id="tk6">—</span>
+    <span class="tk-item" id="tk7">—</span>
+    <span class="tk-item" id="tk8">civicai.in</span>
   </div></div></div>
   <div id="scroll"><div id="content">
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;gap:14px;">
       <div style="font-size:32px">⏳</div>
       <div style="font-size:15px;color:var(--sub)">Loading CivicAI…</div>
-      <div style="font-size:12px;color:var(--muted)">Fetching data from backend</div>
     </div>
   </div></div>
   <div id="abar">
     <div id="ab-stat" style="font-size:12px;color:var(--muted)">Loading…</div>
-    <button class="ab-btn ab-sec" onclick="nav('map')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>Heat Map</button>
+    <button class="ab-btn ab-sec" onclick="nav('map')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>Map</button>
     <button class="ab-btn ab-dng" onclick="nav('hall')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="11"/><path d="M5 3H3v6a4 4 0 004 4h10a4 4 0 004-4V3h-2"/></svg>Hall of Shame</button>
     <button class="ab-btn ab-pri" onclick="openRpt()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Report Issue</button>
   </div>
-</div><!-- /#main -->
-</div><!-- /#shell -->
- 
+</div>
+</div>
+
 <!-- MOBILE NAV -->
 <nav id="mnav">
   <button class="mn-btn on" id="mn-dashboard" onclick="nav('dashboard')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Home</button>
@@ -381,1041 +347,799 @@ select.fi option{background:#161B2A;}
   <button class="mn-btn" id="mn-hall" onclick="nav('hall')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="11"/><path d="M5 3H3v6a4 4 0 004 4h10a4 4 0 004-4V3h-2"/></svg>Hall</button>
   <button class="mn-btn" onclick="openRpt()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Report</button>
 </nav>
- 
+
 <script>
-/* ════════════════════════════════════════
+/* ════════════════════════════════════════════════
    CONFIG
-═════════════════════════════════════════ */
-var API_BASE =
-  location.protocol === 'file:'
-    ? 'http://127.0.0.1:5000'
-    : (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
-        ? 'http://127.0.0.1:5000'
-        : '');
-
+════════════════════════════════════════════════ */
+var API = (location.protocol==='file:') ? 'http://localhost:10000' : '';
 var REFRESH_SEC = 30;
-var PAGE_TITLES = {
-  dashboard:'Dashboard',
-  feed:'Live Issue Feed',
-  map:'Ward Heat Map',
-  hall:'Hall of Fame / Shame',
-  clusters:'Issue Clusters'
-};
-
-/* ════════════════════════════════════════
-   STATE
-═════════════════════════════════════════ */
-var DATA = {issues:[],leaderboard:[],clusters:[],timestamp:null};
-var page = 'dashboard';
-var hallMode = 'fame';
-var feedFilter = 'all';
-var feedWard = '';
-var searchQ = '';
-var wardSel = '';
-var fetching = false;
-var countdown = REFRESH_SEC;
-var cdTimer = null;
-var rptStep = 1;
-var rptForm = {issue_type:'',description:'',location_name:'',ward:'',image_url:null,ward_id:null};
-var aiRes = null;
-var WARD_META = {};
-var BACKEND_OK = false;
-
-/* ════════════════════════════════════════
-   WARD MASTER FROM YOUR EXISTING UI
-═════════════════════════════════════════ */
-var WARDS_BY_ZONE = {
-  "Yelahanka Zone": [
-    "Kempegowda","Chowdeshwari","Attur Layout","Yelahanka Satellite Town",
-    "Kogilu","Thanisandra","Jakkuru","Gundanjaneya Temple Ward",
-    "Amrutahalli","Kodigehalli","Vidyaranyapura","Dodda Bommasandra"
-  ],
-  "Dasarahalli Zone": [
-    "Ramachandrapura","Shettihalli","Chikkasandra","Bagalakunte",
-    "Mallasandra","T Dasarahalli","Jalahalli","Herohalli"
-  ],
-  "Rajarajeshwari Nagar Zone": [
-    "Chamundi Nagar","Ganganagar","Aramane Nagara","Chokkasandra",
-    "Dodda Bidarakallu","Peenya Industrial Area","Rajarajeshwari Nagar",
-    "Hosakerehalli","Gollarapalya Hosahalli","Kottegepalya",
-    "Hegganahalli","Sunkadakatte"
-  ],
-  "Bangalore West Zone": [
-    "Lakshmi Devi Nagar","Nandini Layout","Marappana Palya","Malleswaram",
-    "Rajagopal Nagar","Maruthi Nagar","Laggere","Kushal Nagar",
-    "Kaval Bairasandra","Sriramamandir","Dayananda Nagar","Shankar Matt",
-    "Manjunath Naga","Shanthala Nagar","Sampangiram Nagar","Gandhinagar",
-    "Okalipuram","Rajaji Nagar","Basaveswara Nagar","Vrisabhavathi Nagar",
-    "Kaveripura","Agrahara Dasarahalli","Dr. Raj Kumar Ward","Chickpete",
-    "Chalavadipalya","Binnipete","Bapuji Nagar","Padarayanapura",
-    "Nagarabhavi","Jnana Bharathi Ward","Kengeri",
-    "Nagadevanahalli","Ullalu","Konena Agarahara","Jeevan Bheema Nagar",
-    "Jogupalya","Subramanya Nagar","Nagapura","Rajamahal Guttahalli"
-  ],
-  "Bangalore East Zone": [
-    "Brundavana Nagar","J P Park","Yeshwanthpura","Mattikere",
-    "Radhakrishna Temple Ward","Horamavu","Kalkere","Banasavadi",
-    "Kammanahalli","Kacharkanahalli","HBR Layout","Kadugondanahalli",
-    "Chellakere","Vijayanagar","Hosahalli","Jayachamarajendra Nagar",
-    "Devara Jeevanahalli","Muneshwara Nagar","Lingarajapura",
-    "Sagayapuram","Pulikeshinagar","Ramaswamy Palya","Halsoor",
-    "Hoysala Nagar","New Tippasandara","Vijnana Nagar","Garudachar Playa",
-    "Hudi","Kadugodi","Hagadur","Whitefield","Doddanekkundi",
-    "HAL Airport","Kalyana Nagar","Maruthi Mandir Ward",
-    "Shanthi Nagar (Ward 131)","Nilasandra","Vannarpet","Ejipura",
-    "Frazer Town","Sanjaya Nagar","Malleswaram (Ward 49)"
-  ],
-  "Mahadevapura Zone": [
-    "Hebbala","Vishwanath Nagenahalli","Govindapura","Hennur",
-    "Benniganahalli","Ramamurthy Nagar","K R Puram","Basavanapura",
-    "Devasandra","C V Raman Nagar","Sarvagna Nagar","Maruthi Seva Nagar",
-    "Gayithri Nagar","Dattatreya Temple","Seshadripuram","Vasanth Nagar",
-    "Bharathi Nagar","Hoysala Nagar (Mahadevapura)","Marathahalli",
-    "Varthur","Basavanagudi (Ward 156)","Yediyur","Bellandur",
-    "Ibluru","Domlur","A Narayanapura","Vijnanapura"
-  ],
-  "Bommanahalli Zone": [
-    "Bommanahalli","Bilekhalli","Hongasandra","Singsandra",
-    "Begur","Devarachikkanahalli","Arakere","Kalena Agrahar",
-    "Gottigere","Anjanapura","Hemmigepura","Kudlu",
-    "Puttenahalli","Chunchaghatta","Jaraganahalli","Vasanthapura",
-    "Kumaraswamy Layout","Akshayanagar","Hulimavu","Haralur",
-    "Electronic City Phase 1","Electronic City Phase 2",
-    "Nyanappana Halli","Garvebhavipalya"
-  ],
-  "Bangalore South Zone": [
-    "Jayanagar","Jayanagar East","BTM Layout","Madivala",
-    "Jakkasandra","HSR Layout","Agara","Koramangala",
-    "Lakkasandra","Siddapura","Vishveshwara Puram","Sunkenahalli",
-    "Azad Nagar","Gali Anjenaya Temple Ward","Deepanjali Nagar",
-    "Nayandahalli","Girinagar","Srinagar","Hanumanth Nagar",
-    "Katriguppe","Vidyapeeta Ward","Basavanagudi","Byrasandra",
-    "Gurappanapalya","Suddagunte Palya","Ragigudda","Sarakki",
-    "Karisandra","Dharmagiri Shri Manjunatha Temple Ward",
-    "Padmanabha Nagar","Ittamadu","Uttarahalli","Subramanyapura",
-    "Banashankari Temple Ward","Yelchenahalli","JP Nagar",
-    "Bannerghatta Road","Hulimangala","BTM 2nd Stage",
-    "Attiguppe","Hampi Nagar","K R Market","Hombegowda Nagara",
-    "Dharmaraya Swamy Temple Ward","Rajarajeshwari Nagar (South)",
-    "Gurappanapalya","Jogupalya (South)","Shivajinagar",
-    "Sadashivanagar","Indiranagar","Rajajinagar","Hebbal",
-    "Vijayanagar (Assembly)","Yeshwanthpura (South)"
-  ]
-};
-
-var WARDS = (function(){
-  var seen = {}, out = [];
-  Object.values(WARDS_BY_ZONE).forEach(function(arr){
-    arr.forEach(function(w){ if(!seen[w]){ seen[w]=1; out.push(w); } });
-  });
-  return out;
-})();
-
-/* Existing fallback accountability cards for wards that backend has not mapped yet */
-var OFFICIALS = {
-  "Indiranagar":    {mla:"Sowmya Reddy",    bbmp:"R. Srinivas",  dept:"Public Works",   av:"RS",res:12,pend:2, avg:4 },
-  "Koramangala":    {mla:"Rizwan Arshad",   bbmp:"K. Venkatesh", dept:"Infrastructure", av:"KV",res:8, pend:5, avg:11},
-  "Jayanagar":      {mla:"D.K. Suresh",     bbmp:"P. Ramesh",    dept:"Public Works",   av:"PR",res:15,pend:1, avg:3 },
-  "Rajajinagar":    {mla:"S.T. Somashekhar",bbmp:"M. Lakshmi",   dept:"Roads",          av:"ML",res:3, pend:9, avg:22},
-  "Malleswaram":    {mla:"Ashwath Narayan", bbmp:"V. Anand",     dept:"Public Works",   av:"VA",res:6, pend:4, avg:14},
-  "Hebbal":         {mla:"Byrathi Suresh",  bbmp:"N. Gopal",     dept:"Infrastructure", av:"NG",res:1, pend:11,avg:31},
-  "Whitefield":     {mla:"Priya Krishna",   bbmp:"S. Murthy",    dept:"Roads",          av:"SM",res:10,pend:3, avg:6 },
-  "Electronic City":{mla:"N.A. Harris",     bbmp:"B. Raju",      dept:"Public Works",   av:"BR",res:2, pend:8, avg:27},
-  "HSR Layout":     {mla:"Saritha Ramaiah", bbmp:"C. Prakash",   dept:"Roads",          av:"CP",res:9, pend:2, avg:5 },
-  "BTM Layout":     {mla:"Ramalinga Reddy", bbmp:"D. Kumar",     dept:"Infrastructure", av:"DK",res:0, pend:13,avg:45}
-};
-
-var SRC_META = {
-  twitter:{bg:'rgba(29,161,242,0.12)',color:'#1DA1F2',label:'Twitter/X'},
-  reddit: {bg:'rgba(255,69,0,0.12)',  color:'#FF4500',label:'Reddit'},
-  news:   {bg:'rgba(255,140,0,0.12)', color:'#FF8C00',label:'News'},
-  bbmp:   {bg:'rgba(0,200,150,0.12)', color:'#00C896',label:'BBMP'},
-  citizen:{bg:'rgba(255,255,255,0.06)',color:'rgba(232,237,245,0.45)',label:'Citizen'},
-  scrape: {bg:'rgba(59,158,255,0.12)',color:'#3B9EFF',label:'Live'},
-  seed:   {bg:'rgba(155,109,255,0.12)',color:'#9B6DFF',label:'Demo'},
-  'OpenCity CSV':{bg:'rgba(155,109,255,0.12)',color:'#9B6DFF',label:'OpenCity'},
-  'OpenCity KML':{bg:'rgba(0,200,150,0.12)',color:'#00C896',label:'OpenCity'}
-};
-
-var ISSUE_TYPES = ["Pothole","Garbage","Broken Streetlight","Open Drain","Illegal Dumping","Damaged Footpath","Water Logging","Encroachment"];
+var PAGE_TITLES = {dashboard:'Dashboard',feed:'Live Issue Feed',map:'Ward Heat Map',hall:'Hall of Fame / Shame',status:'Data Sources'};
 var SEV_COL = {critical:'#FF3355',high:'#FF8C00',medium:'#FFD60A',low:'#30D158'};
 var SEV_BG  = {critical:'rgba(255,51,85,0.12)',high:'rgba(255,140,0,0.12)',medium:'rgba(255,214,10,0.12)',low:'rgba(48,209,88,0.12)'};
-function sc(s){ return SEV_COL[s]||'#30D158'; }
-function sbg(s){ return SEV_BG[s]||'rgba(48,209,88,0.12)'; }
+function sc(s){return SEV_COL[s]||'#30D158';}
+function sbg(s){return SEV_BG[s]||'rgba(48,209,88,0.12)';}
 
-/* ════════════════════════════════════════
-   DEMO DATA FALLBACK
-═════════════════════════════════════════ */
-function gid(){ return Math.random().toString(36).slice(2,9).toUpperCase(); }
-function dAgo(n){ var d=new Date(); d.setDate(d.getDate()-n); return d.toISOString(); }
-function dopen(d){ return Math.floor((Date.now()-new Date(d))/86400000); }
+var SRC_META = {
+  reddit:        {bg:'rgba(255,69,0,0.12)',  color:'#FF4500',label:'Reddit'},
+  news:          {bg:'rgba(255,140,0,0.12)', color:'#FF8C00',label:'News'},
+  'OpenCity CSV':{bg:'rgba(155,109,255,0.12)',color:'#9B6DFF',label:'OpenCity'},
+  'OpenCity KML':{bg:'rgba(0,200,150,0.12)', color:'#00C896',label:'OpenCity'},
+  citizen:       {bg:'rgba(59,158,255,0.12)',color:'#3B9EFF',label:'Citizen'},
+  seed:          {bg:'rgba(255,255,255,0.06)',color:'rgba(232,237,245,0.4)',label:'Demo'},
+  database:      {bg:'rgba(0,200,150,0.08)', color:'#00C896',label:'Database'},
+};
+
+/* ════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════ */
+var DATA = {issues:[],leaderboard:[],heatmap:[],summary:{},timestamp:null,mode:'loading'};
+var page='dashboard', hallMode='fame', feedFilter='all', feedWard='', searchQ='', wardSel='';
+var fetching=false, countdown=REFRESH_SEC, cdTimer=null;
+var rptStep=1, rptForm={issue_type:'',description:'',location_name:'',ward_id:'',ward_name:'',image_url:null}, aiRes=null;
+var WARD_LIST=[], INGEST_STATUS={};
+
+/* 198 official BBMP ward list (matching backend) — for dropdowns */
+var WARDS_198 = [
+  {id:1,n:"Kempegowda Ward",z:"Yelahanka"},{id:2,n:"Chowdeshwari Ward",z:"Yelahanka"},
+  {id:3,n:"Attur Layout",z:"Yelahanka"},{id:4,n:"Yelahanka Satellite Town",z:"Yelahanka"},
+  {id:5,n:"Jakkur",z:"Yelahanka"},{id:6,n:"Thanisandra",z:"Yelahanka"},
+  {id:7,n:"Byatarayanapura",z:"Yelahanka"},{id:8,n:"Kodigehalli",z:"Yelahanka"},
+  {id:9,n:"Vidyaranyapura",z:"Yelahanka"},{id:10,n:"Doddabommasandra",z:"Yelahanka"},
+  {id:11,n:"Kuvempunagar",z:"Yelahanka"},{id:12,n:"Shettyhalli",z:"Dasarahalli"},
+  {id:13,n:"Mallasandra",z:"Dasarahalli"},{id:14,n:"Bagalagunte",z:"Dasarahalli"},
+  {id:15,n:"T. Dasarahalli",z:"Dasarahalli"},{id:16,n:"Jalahalli",z:"RR Nagar"},
+  {id:17,n:"J P Park",z:"RR Nagar"},{id:18,n:"Radhakrishna Temple Ward",z:"East"},
+  {id:19,n:"Sanjay Nagar",z:"East"},{id:20,n:"Ganganagar",z:"East"},
+  {id:21,n:"Hebbala",z:"East"},{id:22,n:"Vishwanath Nagenahalli",z:"East"},
+  {id:23,n:"Nagavara",z:"East"},{id:24,n:"HBR Layout",z:"East"},
+  {id:25,n:"Horamavu",z:"Mahadevapura"},{id:26,n:"Ramamurthy Nagar",z:"Mahadevapura"},
+  {id:27,n:"Banaswadi",z:"East"},{id:28,n:"Kammanahalli",z:"East"},
+  {id:29,n:"Kacharakanahalli",z:"East"},{id:30,n:"Kadugondanahalli",z:"East"},
+  {id:31,n:"Kushal Nagar",z:"East"},{id:32,n:"Kaval Byrasandra",z:"East"},
+  {id:33,n:"Manorayanapalya",z:"East"},{id:34,n:"Gangenahalli",z:"East"},
+  {id:35,n:"Aramane Nagar",z:"West"},{id:36,n:"Mattikere",z:"West"},
+  {id:37,n:"Yeshwanthpura",z:"RR Nagar"},{id:38,n:"HMT Ward",z:"RR Nagar"},
+  {id:39,n:"Chokkasandra",z:"Dasarahalli"},{id:40,n:"Dodda Bidarakallu",z:"RR Nagar"},
+  {id:41,n:"Peenya Industrial Area",z:"Dasarahalli"},{id:42,n:"Lakshmidevi Nagar",z:"RR Nagar"},
+  {id:43,n:"Nandini Layout",z:"West"},{id:44,n:"Marappana Palya",z:"West"},
+  {id:45,n:"Malleswaram",z:"West"},{id:46,n:"Jayachamarajendra Nagar",z:"East"},
+  {id:47,n:"Devara Jeevanahalli",z:"East"},{id:48,n:"Muneshwara Nagar",z:"East"},
+  {id:49,n:"Lingarajapuram",z:"East"},{id:50,n:"Benniganahalli",z:"East"},
+  {id:51,n:"Vijinapura",z:"Mahadevapura"},{id:52,n:"Krishnarajapuram",z:"Mahadevapura"},
+  {id:53,n:"Basavanapura",z:"Mahadevapura"},{id:54,n:"Hoodi",z:"Mahadevapura"},
+  {id:55,n:"Devasandra",z:"Mahadevapura"},{id:56,n:"A Narayanapura",z:"Mahadevapura"},
+  {id:57,n:"C V Raman Nagar",z:"East"},{id:58,n:"New Tippasandra",z:"East"},
+  {id:59,n:"Maruthi Seva Nagar",z:"East"},{id:60,n:"Sagayarapuram",z:"East"},
+  {id:61,n:"S K Garden",z:"East"},{id:62,n:"Ramaswamy Palya",z:"East"},
+  {id:63,n:"Jayamahal",z:"East"},{id:64,n:"Rajamahal Guttahalli",z:"West"},
+  {id:65,n:"Kadumalleshwara",z:"West"},{id:66,n:"Subrahmanyanagar",z:"West"},
+  {id:67,n:"Nagapura",z:"West"},{id:68,n:"Mahalakshmipuram",z:"West"},
+  {id:69,n:"Laggere",z:"RR Nagar"},{id:70,n:"Rajagopalanagar",z:"Dasarahalli"},
+  {id:71,n:"Hegganahalli",z:"Dasarahalli"},{id:72,n:"Herohalli",z:"RR Nagar"},
+  {id:73,n:"Kottigepalya",z:"RR Nagar"},{id:74,n:"Shakthiganapathinagar",z:"West"},
+  {id:75,n:"Shankara Matha",z:"West"},{id:76,n:"Gayathrinagar",z:"West"},
+  {id:77,n:"Dattathreya Temple Ward",z:"West"},{id:78,n:"Pulakeshinagar",z:"East"},
+  {id:79,n:"Sarvagna Nagar",z:"East"},{id:80,n:"Hoysalanagar",z:"East"},
+  {id:81,n:"Vignananagar",z:"Mahadevapura"},{id:82,n:"Garudacharpalya",z:"Mahadevapura"},
+  {id:83,n:"Kadugodi",z:"Mahadevapura"},{id:84,n:"Hagadooru",z:"Mahadevapura"},
+  {id:85,n:"Doddanekkundi",z:"Mahadevapura"},{id:86,n:"Marathahalli",z:"Mahadevapura"},
+  {id:87,n:"HAL Airport Ward",z:"Mahadevapura"},{id:88,n:"Jeevanabima Nagar",z:"East"},
+  {id:89,n:"Jogupalya",z:"East"},{id:90,n:"Ulsoor",z:"East"},
+  {id:91,n:"Bharathinagar",z:"East"},{id:92,n:"Shivajinagar",z:"East"},
+  {id:93,n:"Vasanthnagar",z:"East"},{id:94,n:"Gandhinagar",z:"West"},
+  {id:95,n:"Subhashnagar",z:"West"},{id:96,n:"Okalipuram",z:"West"},
+  {id:97,n:"Dayananda Nagar",z:"West"},{id:98,n:"Prakashnagar",z:"West"},
+  {id:99,n:"Rajajinagar",z:"West"},{id:100,n:"Basaveshwaranagar",z:"West"},
+  {id:101,n:"Kamakshipalya",z:"West"},{id:102,n:"Vrishabhavathi Ward",z:"West"},
+  {id:103,n:"Kaveripura",z:"South"},{id:104,n:"Govindarajanagar",z:"South"},
+  {id:105,n:"Agrahara Dasarahalli",z:"South"},{id:106,n:"Dr Rajkumar Ward",z:"South"},
+  {id:107,n:"Shivanagar",z:"West"},{id:108,n:"Srirama Mandir",z:"West"},
+  {id:109,n:"Chickpete",z:"West"},{id:110,n:"Sampangiramanagar",z:"East"},
+  {id:111,n:"Shanthalanagar",z:"East"},{id:112,n:"Domlur",z:"East"},
+  {id:113,n:"Konena Agrahara",z:"East"},{id:114,n:"Agaram",z:"East"},
+  {id:115,n:"Vannarpet",z:"East"},{id:116,n:"Neelasandra",z:"East"},
+  {id:117,n:"Shanthinagar",z:"East"},{id:118,n:"Sudhamanagar",z:"South"},
+  {id:119,n:"Dharmarayaswamy Temple Ward",z:"South"},{id:120,n:"Cottonpet",z:"West"},
+  {id:121,n:"Binnipete",z:"West"},{id:122,n:"Kempapura Agrahara",z:"South"},
+  {id:123,n:"Vijayanagar",z:"South"},{id:124,n:"Hosahalli",z:"South"},
+  {id:125,n:"Marenahalli",z:"South"},{id:126,n:"Maruthi Mandir Ward",z:"South"},
+  {id:127,n:"Moodalapalya",z:"South"},{id:128,n:"Nagarabhavi",z:"South"},
+  {id:129,n:"Jnanabharathi",z:"RR Nagar"},{id:130,n:"Ullalu",z:"RR Nagar"},
+  {id:131,n:"Nayandahalli",z:"South"},{id:132,n:"Attiguppe",z:"South"},
+  {id:133,n:"Hampinagar",z:"South"},{id:134,n:"Bapujinagar",z:"South"},
+  {id:135,n:"Padarayanapura",z:"West"},{id:136,n:"Jagjivanram Nagar",z:"West"},
+  {id:137,n:"Rayapuram",z:"West"},{id:138,n:"Chalavadipalya",z:"West"},
+  {id:139,n:"Krishnarajendra Market Ward",z:"West"},{id:140,n:"Chamarajapet",z:"West"},
+  {id:141,n:"Azad Nagar",z:"West"},{id:142,n:"Sunkenahalli",z:"South"},
+  {id:143,n:"Vishveshwarapuram",z:"South"},{id:144,n:"Siddapura",z:"South"},
+  {id:145,n:"Hombegowdanagar",z:"South"},{id:146,n:"Lakkasandra",z:"South"},
+  {id:147,n:"Adugodi",z:"South"},{id:148,n:"Ejipura",z:"South"},
+  {id:149,n:"Varthur",z:"Mahadevapura"},{id:150,n:"Bellandur",z:"Mahadevapura"},
+  {id:151,n:"Ibluru",z:"Mahadevapura"},{id:152,n:"Koramangala",z:"South"},
+  {id:153,n:"Suddagunte Palya",z:"South"},{id:154,n:"Madivala",z:"South"},
+  {id:155,n:"Jakkasandra",z:"South"},{id:156,n:"BTM Layout",z:"South"},
+  {id:157,n:"Akshayanagar",z:"Bommanahalli"},{id:158,n:"Byrasandra",z:"South"},
+  {id:159,n:"Jayanagar East",z:"South"},{id:160,n:"Gurappanapalya",z:"South"},
+  {id:161,n:"HSR Layout",z:"South"},{id:162,n:"Bommanahalli",z:"Bommanahalli"},
+  {id:163,n:"Singasandra",z:"Bommanahalli"},{id:164,n:"Begur",z:"Bommanahalli"},
+  {id:165,n:"Arakere",z:"Bommanahalli"},{id:166,n:"Gottigere",z:"Bommanahalli"},
+  {id:167,n:"Hulimavu",z:"Bommanahalli"},{id:168,n:"Hongasandra",z:"Bommanahalli"},
+  {id:169,n:"Mangammanapalya",z:"Bommanahalli"},{id:170,n:"Jayanagar",z:"South"},
+  {id:171,n:"Basavanagudi",z:"South"},{id:172,n:"Kumaraswamy Layout",z:"South"},
+  {id:173,n:"Padmanabha Nagar",z:"South"},{id:174,n:"Girinagar",z:"South"},
+  {id:175,n:"Katriguppe",z:"South"},{id:176,n:"Vidyapeeta Ward",z:"South"},
+  {id:177,n:"Ganesh Mandir Ward",z:"South"},{id:178,n:"Karisandra",z:"South"},
+  {id:179,n:"Yediyur",z:"South"},{id:180,n:"Pattabhirama Nagar",z:"South"},
+  {id:181,n:"Byrasandra South",z:"South"},{id:182,n:"Kanakapur Road",z:"South"},
+  {id:183,n:"Chikkalsandra",z:"South"},{id:184,n:"Uttarahalli",z:"Bommanahalli"},
+  {id:185,n:"Yelchenahalli",z:"Bommanahalli"},{id:186,n:"Jaraganahalli",z:"Bommanahalli"},
+  {id:187,n:"Puttenahalli",z:"Bommanahalli"},{id:188,n:"Bilekhalli",z:"Bommanahalli"},
+  {id:189,n:"Honga Sandra",z:"Bommanahalli"},{id:190,n:"Mangammana Palya",z:"Bommanahalli"},
+  {id:191,n:"Singasandra South",z:"Bommanahalli"},{id:192,n:"Begur South",z:"Bommanahalli"},
+  {id:193,n:"Electronic City Phase 1",z:"Bommanahalli"},{id:194,n:"Electronic City Phase 2",z:"Bommanahalli"},
+  {id:195,n:"Anjanapura",z:"Bommanahalli"},{id:196,n:"Kudlu",z:"Bommanahalli"},
+  {id:197,n:"Garvebhavipalya",z:"Bommanahalli"},{id:198,n:"Hemmigepura",z:"RR Nagar"}
+];
+var ZONES = [...new Set(WARDS_198.map(function(w){return w.z;}))].sort();
+
+/* ════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════ */
+function e(id){return document.getElementById(id);}
+function dopen(d){return Math.floor((Date.now()-new Date(d))/86400000);}
 function fmtd(iso){
-  if(!iso) return '';
+  if(!iso)return '';
   var d=new Date(iso);
   return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+' · '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
 }
-
-var SEED = [
-  {id:gid(),issue_type:"Pothole",description:"Large pothole on 12th Main causing near-miss accidents daily — 3 bikes fell this week",location_name:"Indiranagar, 12th Main",ward:"Indiranagar",ward_id:null,zone:"South",severity:"critical",status:"open",created_at:dAgo(14),upvotes:43,source:"seed",image_url:null,latitude:12.9784,longitude:77.6408},
-  {id:gid(),issue_type:"Garbage",description:"Overflowing garbage bins — 5 days uncollected near market, stench severe for residents",location_name:"Koramangala, 5th Block",ward:"Koramangala",ward_id:null,zone:"South",severity:"high",status:"open",created_at:dAgo(8),upvotes:27,source:"seed",image_url:null,latitude:12.9352,longitude:77.6245},
-  {id:gid(),issue_type:"Broken Streetlight",description:"3 consecutive streetlights dead since last week — road completely dark at night",location_name:"Jayanagar, 4th Block",ward:"Jayanagar",ward_id:null,zone:"South",severity:"medium",status:"resolved",created_at:dAgo(20),upvotes:18,source:"seed",image_url:null,latitude:12.9299,longitude:77.5924},
-  {id:gid(),issue_type:"Open Drain",description:"Exposed drain posing health hazard near school gate — children and elderly at risk",location_name:"Rajajinagar, 3rd Block",ward:"Rajajinagar",ward_id:null,zone:"West",severity:"high",status:"open",created_at:dAgo(5),upvotes:31,source:"seed",image_url:null,latitude:12.9914,longitude:77.5530},
-  {id:gid(),issue_type:"Water Logging",description:"Severe waterlogging — vehicles stuck 2+ hours after every rain on main IT corridor",location_name:"Whitefield, ITPL Road",ward:"Whitefield",ward_id:null,zone:"Mahadevapura",severity:"critical",status:"open",created_at:dAgo(2),upvotes:56,source:"seed",image_url:null,latitude:12.9698,longitude:77.7499}
-];
-
-function seedLB(){
-  var wc={};
-  SEED.forEach(function(i){ wc[i.ward]=(wc[i.ward]||0)+1; });
-  return Object.entries(wc).map(function(e){ return {ward:e[0],count:e[1]}; }).sort(function(a,b){ return b.count-a.count; });
+function pill(txt,col,bg){return '<span class="pill" style="color:'+col+';background:'+bg+'">'+txt+'</span>';}
+function spill(s){return pill(s,sc(s),sbg(s));}
+function stpill(s){return s==='resolved'?pill('resolved','#30D158','rgba(48,209,88,0.12)'):pill('open','#FF8C00','rgba(255,140,0,0.12)');}
+function srcbdg(src){var m=SRC_META[src]||SRC_META.citizen;return '<span class="spill" style="color:'+m.color+';background:'+m.bg+'">'+m.label+'</span>';}
+function pinsvg(){return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>';}
+function xsvg(){return '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';}
+function prog(pct,col){return '<div class="prog"><div class="prog-f" style="width:'+Math.min(pct,100)+'%;background:'+col+'"></div></div>';}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function cp(text,lbl){
+  try{navigator.clipboard.writeText(text);}catch(e){var t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);}
+  toast('✓ '+(lbl||'Text')+' copied!','#30D158');
 }
-function seedClusters(){
-  return [
-    {cluster:"Pothole-related road damage across central Bengaluru",items:SEED.filter(function(i){ return i.issue_type==='Pothole'; })},
-    {cluster:"Garbage and sanitation issues — north and east zones",items:SEED.filter(function(i){ return i.issue_type==='Garbage'; })}
-  ];
+function toast(msg,col){
+  var t=e('toast');t.textContent=msg;t.style.background=col||'#30D158';
+  t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);
 }
-function lbFromIssues(issues){
-  var wc={};
-  issues.forEach(function(i){ wc[i.ward]=(wc[i.ward]||0)+1; });
-  return Object.entries(wc).map(function(e){ return {ward:e[0],count:e[1]}; }).sort(function(a,b){ return b.count-a.count; });
-}
-function clustersFromIssues(issues){
-  var groups={};
-  issues.forEach(function(i){
-    var key=i.issue_type||'Other';
-    if(!groups[key]) groups[key]=[];
-    groups[key].push(i);
+function wardDropOpts(selId){
+  var html='<option value="" disabled '+(rptForm.ward_id?'':'selected')+'>Select ward (type to search)</option>';
+  var zones={};
+  WARDS_198.forEach(function(w){
+    if(!zones[w.z])zones[w.z]=[];
+    zones[w.z].push(w);
   });
-  return Object.entries(groups)
-    .filter(function(entry){ return entry[1].length >= 2; })
-    .map(function(entry){
-      return {
-        cluster: entry[0]+' issues across multiple Bengaluru locations',
-        items: entry[1].slice(0,8)
-      };
-    })
-    .slice(0,8);
-}
-
-/* ════════════════════════════════════════
-   HELPERS
-═════════════════════════════════════════ */
-function e(id){ return document.getElementById(id); }
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function safeEsc(s){ return String(s||'').replace(/`/g,"'").replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n'); }
-function pill(txt,col,bg){ return '<span class="pill" style="color:'+col+';background:'+bg+'">'+txt+'</span>'; }
-function spill(s){ return pill(s,sc(s),sbg(s)); }
-function stpill(s){ return s==='resolved'||s==='closed' ? pill('resolved','#30D158','rgba(48,209,88,0.12)') : pill('open','#FF8C00','rgba(255,140,0,0.12)'); }
-function srcbdg(src){ var m=SRC_META[src]||SRC_META.citizen; return '<span class="spill" style="color:'+m.color+';background:'+m.bg+'">'+m.label+'</span>'; }
-function pinsvg(){ return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'; }
-function xsvg(){ return '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'; }
-function prog(pct,col){ return '<div class="prog"><div class="prog-f" style="width:'+Math.min(pct,100)+'%;background:'+col+'"></div></div>'; }
-
-function zoneLabelToShort(label){
-  return String(label||'')
-    .replace(/\s+Zone$/i,'')
-    .replace(/^Bangalore\s+/i,'')
-    .replace(/^Bengaluru\s+/i,'')
-    .replace('Rajarajeshwari Nagar','RR Nagar');
-}
-
-function guessZoneFromWard(ward){
-  var found = '';
-  Object.keys(WARDS_BY_ZONE).forEach(function(zone){
-    if (WARDS_BY_ZONE[zone].indexOf(ward) > -1) found = zoneLabelToShort(zone);
-  });
-  return found || '';
-}
-
-function inferWardFromText(text){
-  var t = String(text||'').toLowerCase();
-  for(var i=0;i<WARDS.length;i++){
-    if(t.indexOf(WARDS[i].toLowerCase())>-1) return WARDS[i];
-  }
-  return '';
-}
-
-function getOfficerForWard(ward){
-  if (WARD_META[ward]) {
-    return {
-      mla: WARD_META[ward].mla || 'Local MLA',
-      bbmp: WARD_META[ward].joint_commissioner || WARD_META[ward].zonal_commissioner || 'BBMP Officer',
-      dept: WARD_META[ward].engineering_owner || WARD_META[ward].health_owner || 'BBMP Department',
-      av: (WARD_META[ward].mla || 'ML').split(' ').map(function(x){ return x[0]; }).slice(0,2).join('').toUpperCase() || 'BB',
-      res: 0, pend: 0, avg: 0
-    };
-  }
-  return OFFICIALS[ward] || {mla:'Local MLA',bbmp:'BBMP Officer',dept:'Public Works',av:'BB',res:0,pend:0,avg:0};
-}
-
-async function api(path, options){
-  options = options || {};
-  var res = await fetch(API_BASE + path, {
-    method: options.method || 'GET',
-    headers: Object.assign({'Content-Type':'application/json'}, options.headers || {}),
-    body: options.body || null
-  });
-
-  var data = null;
-  try { data = await res.json(); } catch(err) { data = null; }
-
-  if(!res.ok){
-    throw new Error((data && data.error) || ('HTTP '+res.status));
-  }
-  return data;
-}
-
-function normaliseIssue(r){
-  var sev = r.severity && ['critical','high','medium','low'].indexOf(r.severity)>-1 ? r.severity : 'medium';
-  var ts = r.timestamp || r.created_at || new Date().toISOString();
-  var ward = r.ward || r.ward_name || '';
-  var wardId = r.ward_id || null;
-  if(!ward) ward = inferWardFromText((r.description||'') + ' ' + (r.location_name||''));
-  var zone = r.zone || (ward ? guessZoneFromWard(ward) : '');
-  return {
-    id: r.id || gid(),
-    issue_type: r.issue_type || 'Pothole',
-    description: (r.description || 'No description').slice(0,220),
-    location_name: r.location_name || r.location_text || ward || '',
-    ward: ward || 'Unknown Ward',
-    ward_id: wardId,
-    zone: zone || '',
-    severity: sev,
-    status: (r.status || 'open').toLowerCase(),
-    source: r.source || 'scrape',
-    source_url: r.source_url || null,
-    latitude: r.latitude || null,
-    longitude: r.longitude || null,
-    timestamp: ts,
-    created_at: ts,
-    upvotes: r.upvotes || Math.floor(Math.random()*30)+1,
-    image_url: r.image_url || null,
-    mla: r.mla || (WARD_META[ward] ? WARD_META[ward].mla : null) || (OFFICIALS[ward] ? OFFICIALS[ward].mla : 'Local MLA')
-  };
-}
-
-/* ════════════════════════════════════════
-   BACKEND LOADERS
-═════════════════════════════════════════ */
-async function loadWardMetaIndex(){
-  try{
-    var raw = await api('/wards');
-    var wards = Array.isArray(raw) ? raw : (raw.wards || []);
-    wards.forEach(function(w){
-      var key = w.ward_name || w.ward || '';
-      if(key){
-        WARD_META[key] = {
-          ward_id: w.ward_id,
-          ward_name: w.ward_name || key,
-          zone: w.zone || guessZoneFromWard(key),
-          constituency: w.constituency || '',
-          constituency_no: w.constituency_no || '',
-          mla: w.mla || '',
-          mla_party: w.mla_party || '',
-          zonal_commissioner: w.zonal_commissioner || '',
-          joint_commissioner: w.joint_commissioner || '',
-          engineering_owner: w.engineering_owner || '',
-          health_owner: w.health_owner || '',
-          swm_contractor: w.swm_contractor || '',
-          bwssb_division: w.bwssb_division || '',
-          bescom_subdivision: w.bescom_subdivision || ''
-        };
-      }
+  Object.keys(zones).sort().forEach(function(z){
+    html+='<optgroup label="── '+z+' Zone ──">';
+    zones[z].forEach(function(w){
+      html+='<option value="'+w.id+'"'+(rptForm.ward_id==w.id?' selected':'')+'>'+esc(w.n)+'</option>';
     });
-  }catch(err){
-    console.warn('[loadWardMetaIndex]', err);
-  }
+    html+='</optgroup>';
+  });
+  return html;
 }
 
-async function fetchIssuesFromBackend(){
-  var params = [];
-  if(feedWard) params.push('ward=' + encodeURIComponent(feedWard));
-  var url = '/issues' + (params.length ? '?' + params.join('&') : '');
-  var raw = await api(url);
-  var issues = (raw.issues || raw || []).map(normaliseIssue);
-
-  DATA = {
-    issues: issues,
-    leaderboard: raw.leaderboard && raw.leaderboard.length ? raw.leaderboard : lbFromIssues(issues),
-    clusters: raw.clusters && raw.clusters.length ? raw.clusters : clustersFromIssues(issues),
-    timestamp: raw.timestamp || new Date().toISOString()
-  };
-  BACKEND_OK = true;
-  syncUI();
-  render();
-}
-
+/* ════════════════════════════════════════════════
+   DATA FETCHING — reads from backend DB (not live scraping)
+════════════════════════════════════════════════ */
 function setFetchUI(loading){
-  var btn=e('fbtn'), ico=e('ficon'), lbl=e('flbl');
-  if(!btn) return;
+  var btn=e('fbtn'),ico=e('ficon'),lbl=e('flbl');
+  if(!btn)return;
   btn.disabled=loading;
-  ico.innerHTML=loading
-    ? '<span class="spin"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></span>'
-    : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>';
+  ico.innerHTML=loading?'<span style="animation:spin 1s linear infinite;display:inline-flex"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></span>':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>';
   lbl.textContent=loading?'Fetching…':'Fetch Live';
 }
 
-async function fetchData(manual){
-  if(fetching) return;
-  fetching = true;
-  setFetchUI(true);
-  if(manual) toast('🔍 Syncing live data from backend sources…','#3B9EFF');
+function fetchAll(manual){
+  if(fetching)return;
+  fetching=true;setFetchUI(true);
+  if(manual)toast('🔄 Refreshing from database…','#3B9EFF');
+  // Fire all API calls in parallel
+  Promise.all([
+    fetch(API+'/api/stats/summary').then(function(r){return r.json();}).catch(function(){return {};}),
+    fetch(API+'/api/issues?limit=200').then(function(r){return r.json();}).catch(function(){return {issues:[]};}),
+    fetch(API+'/api/stats/leaderboard').then(function(r){return r.json();}).catch(function(){return {leaderboard:[]};}),
+    fetch(API+'/api/stats/heatmap').then(function(r){return r.json();}).catch(function(){return {heatmap:[]};}),
+    fetch(API+'/api/ingest/status').then(function(r){return r.json();}).catch(function(){return {sources:{}};}),
+  ]).then(function(results){
+    var summary=results[0], issuesData=results[1], lbData=results[2], hmData=results[3], ingestData=results[4];
+    DATA.summary   = summary;
+    DATA.issues    = issuesData.issues||[];
+    DATA.leaderboard = lbData.leaderboard||[];
+    DATA.heatmap   = hmData.heatmap||[];
+    DATA.timestamp = new Date().toISOString();
+    INGEST_STATUS  = ingestData.sources||{};
+    DATA.mode      = DATA.issues.length>0 ? (DATA.issues.some(function(i){return i.source!=='seed';}) ? 'live':'demo') : 'demo';
+    syncUI();render();
+    if(manual)toast('✓ Dashboard refreshed — '+DATA.issues.length+' issues from database','#30D158');
+  }).catch(function(err){
+    console.warn('[fetchAll]',err);
+    DATA.mode='error';
+    showModeBanner('error','⚠ Cannot reach backend — start Flask: python app.py');
+    if(manual)toast('⚠ Backend unavailable','#FF3355');
+  }).finally(function(){
+    fetching=false;setFetchUI(false);resetCD();
+  });
+}
 
-  try{
-    await api('/scrape/sync?sources=csv,kml,reddit,news', {method:'POST'});
-    await fetchIssuesFromBackend();
-    if(manual) toast('✓ Live issues synced and reloaded','#30D158');
-  }catch(err){
-    console.warn('[fetchData]', err);
-    if(!DATA.issues.length){
-      DATA={issues:SEED,leaderboard:seedLB(),clusters:seedClusters(),timestamp:null};
-      syncUI();
-      render();
-    }
-    if(manual) toast('⚠ Sync failed — showing saved/demo data','#FF8C00');
-  }finally{
-    fetching = false;
-    setFetchUI(false);
-    resetCD();
+function triggerIngest(){
+  toast('⚡ Triggering background ingestion…','#9B6DFF');
+  fetch(API+'/api/ingest/trigger',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source:'all'})})
+    .then(function(r){return r.json();})
+    .then(function(d){toast('✓ '+d.message,'#30D158');setTimeout(function(){fetchAll(false);},5000);})
+    .catch(function(){toast('⚠ Could not trigger ingestion','#FF3355');});
+}
+
+/* ════════════════════════════════════════════════
+   GLOBAL UI SYNC
+════════════════════════════════════════════════ */
+function syncUI(){
+  var s=DATA.summary;
+  var open=s.open_count||DATA.issues.filter(function(i){return i.status==='open';}).length;
+  var crit=s.critical_count||0;
+  var over=s.overdue_count||0;
+  if(e('tb-open'))e('tb-open').textContent=open;
+  if(e('sb-fc'))e('sb-fc').textContent=DATA.issues.length;
+  var pairs=[['tk1','tk5',open+' open issues'],['tk2','tk6',crit+' critical'],
+             ['tk3','tk7',over+' overdue >7d · Bengaluru'],
+             ['tk4','tk8',DATA.timestamp?'Updated '+fmtd(DATA.timestamp):'civicai.in']];
+  pairs.forEach(function(p){if(e(p[0]))e(p[0]).textContent=p[2];if(e(p[1]))e(p[1]).textContent=p[2];});
+  if(e('ab-stat'))e('ab-stat').innerHTML='<strong>'+open+'</strong> open · <strong>'+crit+'</strong> critical · <strong>'+over+'</strong> overdue';
+  showModeBanner(DATA.mode);
+}
+
+function showModeBanner(mode,customMsg){
+  var b=e('mode-banner');if(!b)return;
+  b.className='';b.style.display='none';
+  if(mode==='demo'){
+    b.className='demo';
+    b.textContent='📋 DEMO MODE — Showing seed data. Click "Fetch Live" to load real data from backend.';
+    b.style.display='block';
+  } else if(mode==='live'){
+    b.className='live';
+    b.textContent='✓ LIVE DATA — '+DATA.issues.length+' issues from database · Auto-refreshes every '+REFRESH_SEC+'s';
+    b.style.display='block';
+  } else if(mode==='error'){
+    b.className='demo';
+    b.textContent=customMsg||'⚠ Backend unavailable';
+    b.style.display='block';
   }
 }
 
-async function checkHealth(){
-  try{
-    await api('/health');
-    BACKEND_OK = true;
-  }catch(err){
-    BACKEND_OK = false;
-    console.warn('[health]', err);
-  }
-}
-
-/* ════════════════════════════════════════
-   AUTO REFRESH
-═════════════════════════════════════════ */
+/* ════════════════════════════════════════════════
+   AUTO-REFRESH COUNTDOWN
+════════════════════════════════════════════════ */
 function startCD(){
-  clearInterval(cdTimer);
-  countdown=REFRESH_SEC;
-  animRBar(1);
+  clearInterval(cdTimer);countdown=REFRESH_SEC;animRBar(1);
   cdTimer=setInterval(function(){
-    countdown--;
-    animRBar(countdown/REFRESH_SEC);
-    var el=e('ab-stat');
-    if(el){
-      var open=DATA.issues.filter(function(i){ return i.status==='open'; });
-      var crit=DATA.issues.filter(function(i){ return i.severity==='critical'&&i.status==='open'; });
-      var over=open.filter(function(i){ return dopen(i.created_at)>7; });
-      el.innerHTML='<strong>'+open.length+'</strong> open · <strong>'+crit.length+'</strong> critical · <strong>'+over.length+'</strong> overdue'+(BACKEND_OK&&DATA.timestamp?' · ↻ '+countdown+'s':'');
-    }
-    if(countdown<=0){
-      countdown=REFRESH_SEC;
-      if(BACKEND_OK) fetchIssuesFromBackend().catch(function(){});
-    }
+    countdown--;animRBar(countdown/REFRESH_SEC);
+    if(countdown<=0){countdown=REFRESH_SEC;fetchAll(false);}
   },1000);
 }
-function resetCD(){ countdown=REFRESH_SEC; animRBar(1); }
-function animRBar(pct){ var b=e('rbar'); if(b) b.style.transform='scaleX('+pct+')'; }
+function resetCD(){countdown=REFRESH_SEC;animRBar(1);}
+function animRBar(pct){var b=e('rbar');if(b)b.style.transform='scaleX('+pct+')';}
 
-/* ════════════════════════════════════════
-   GLOBAL UI SYNC
-═════════════════════════════════════════ */
-function syncUI(){
-  var issues=DATA.issues;
-  var open=issues.filter(function(i){ return i.status==='open'; });
-  var crit=issues.filter(function(i){ return i.severity==='critical'&&i.status==='open'; });
-  var over=open.filter(function(i){ return dopen(i.created_at)>7; });
-
-  if(e('tb-open')) e('tb-open').textContent=open.length;
-  if(e('sb-fc')) e('sb-fc').textContent=issues.length;
-
-  var ts=DATA.timestamp?'Updated '+fmtd(DATA.timestamp):(BACKEND_OK?'Connected':'Demo mode');
-  [['tk1','tk5',open.length+' open issues'],
-   ['tk2','tk6',crit.length+' critical'],
-   ['tk3','tk7',over.length+' overdue >7d · Bengaluru'],
-   ['tk4','tk8',ts]
-  ].forEach(function(t){
-    if(e(t[0])) e(t[0]).textContent=t[2];
-    if(e(t[1])) e(t[1]).textContent=t[2];
-  });
-
-  if(e('ab-stat')) e('ab-stat').innerHTML='<strong>'+open.length+'</strong> open · <strong>'+crit.length+'</strong> critical · <strong>'+over.length+'</strong> overdue';
-}
-
-/* ════════════════════════════════════════
+/* ════════════════════════════════════════════════
    NAVIGATION
-═════════════════════════════════════════ */
+════════════════════════════════════════════════ */
 function nav(p){
   page=p;
-  if(e('tb-title')) e('tb-title').textContent=PAGE_TITLES[p]||'CivicAI';
-  document.querySelectorAll('.nl').forEach(function(el){ el.classList.remove('on'); });
-  var nl=e('nl-'+p); if(nl) nl.classList.add('on');
-  document.querySelectorAll('.mn-btn').forEach(function(el){ el.classList.remove('on'); });
-  var mn=e('mn-'+p); if(mn) mn.classList.add('on');
+  if(e('tb-title'))e('tb-title').textContent=PAGE_TITLES[p]||'CivicAI';
+  document.querySelectorAll('.nl').forEach(function(el){el.classList.remove('on');});
+  var nl=e('nl-'+p);if(nl)nl.classList.add('on');
+  document.querySelectorAll('.mn-btn').forEach(function(el){el.classList.remove('on');});
+  var mn=e('mn-'+p);if(mn)mn.classList.add('on');
   render();
-  if(window.innerWidth<768) closeSB();
+  if(window.innerWidth<768)closeSB();
 }
-function toggleSB(){ e('sb').classList.toggle('open'); e('sb-ov').classList.toggle('show'); }
-function closeSB(){ e('sb').classList.remove('open'); e('sb-ov').classList.remove('show'); }
-function onSearch(v){ searchQ=v.toLowerCase(); if(page==='feed') render(); }
+function toggleSB(){e('sb').classList.toggle('open');e('sb-ov').classList.toggle('show');}
+function closeSB(){e('sb').classList.remove('open');e('sb-ov').classList.remove('show');}
+function onSrch(v){searchQ=v.toLowerCase();if(page==='feed')render();}
 
-/* ════════════════════════════════════════
-   RENDER
-═════════════════════════════════════════ */
 function render(){
-  var c=e('content'); if(!c) return;
+  var c=e('content');if(!c)return;
   c.style.animation='none';
   requestAnimationFrame(function(){
     c.style.animation='fadeUp .3s ease';
     if(page==='dashboard') c.innerHTML=pDash();
     else if(page==='feed') c.innerHTML=pFeed();
-    else if(page==='map') c.innerHTML=pMap();
+    else if(page==='map')  c.innerHTML=pMap();
     else if(page==='hall') c.innerHTML=pHall();
-    else if(page==='clusters') c.innerHTML=pClusters();
-    var sc=e('scroll'); if(sc) sc.scrollTop=0;
+    else if(page==='status') c.innerHTML=pStatus();
+    var sc=e('scroll');if(sc)sc.scrollTop=0;
   });
 }
 
-/* ════════════════════════════════════════
-   PAGES
-═════════════════════════════════════════ */
+/* ════════════════════════════════════════════════
+   DASHBOARD PAGE
+════════════════════════════════════════════════ */
 function pDash(){
-  var issues=DATA.issues;
-  var open=issues.filter(function(i){ return i.status==='open'; });
-  var res=issues.filter(function(i){ return i.status==='resolved' || i.status==='closed'; });
-  var crit=issues.filter(function(i){ return i.severity==='critical'&&i.status==='open'; });
-  var over=open.filter(function(i){ return dopen(i.created_at)>7; });
-  var avg=open.length?Math.round(open.reduce(function(a,i){ return a+dopen(i.created_at); },0)/open.length):0;
-
+  var s=DATA.summary;
+  var open=s.open_count||0, res=s.resolved_count||0, crit=s.critical_count||0;
+  var over=s.overdue_count||0, avg=s.avg_days_open||0, total=s.total||DATA.issues.length;
   var bySev={critical:0,high:0,medium:0,low:0};
-  issues.forEach(function(i){ if(i.status==='open'){ bySev[i.severity]=(bySev[i.severity]||0)+1; } });
-
-  var byType={};
-  issues.forEach(function(i){ byType[i.issue_type]=(byType[i.issue_type]||0)+1; });
-  var topTypes=Object.entries(byType).sort(function(a,b){ return b[1]-a[1]; }).slice(0,6);
+  DATA.issues.forEach(function(i){if(i.status==='open')bySev[i.severity]=(bySev[i.severity]||0)+1;});
+  var byType={};DATA.issues.forEach(function(i){byType[i.issue_type]=(byType[i.issue_type]||0)+1;});
+  var topTypes=Object.entries(byType).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
   var maxType=topTypes.length?topTypes[0][1]:1;
-
-  var bySrc={};
-  issues.forEach(function(i){ bySrc[i.source]=(bySrc[i.source]||0)+1; });
-
-  var oldest=[].concat(open).sort(function(a,b){ return dopen(b.created_at)-dopen(a.created_at); }).slice(0,6);
-  var lb=DATA.leaderboard.length?DATA.leaderboard:lbFromIssues(issues);
-  var maxLb=lb.length?lb[0].count:1;
-  var topUV=[].concat(issues).sort(function(a,b){ return b.upvotes-a.upvotes; }).slice(0,6);
-  var ts=DATA.timestamp;
-  var h='';
+  var oldest=[].concat(DATA.issues).filter(function(i){return i.status==='open';}).sort(function(a,b){return dopen(b.created_at)-dopen(a.created_at);}).slice(0,6);
+  var lb=DATA.leaderboard.slice(0,8);var maxLb=lb.length?lb[0].count:1;
+  var topUV=[].concat(DATA.issues).sort(function(a,b){return b.upvotes-a.upvotes;}).slice(0,6);
+  var ts=DATA.timestamp;var h='';
 
   h+='<div class="sh"><div><div class="sh-title">Civic Accountability Dashboard</div>';
-  h+='<div class="sh-sub">Persistent issue tracking · Bengaluru · '+new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</div></div>';
-  h+='<div style="display:flex;align-items:center;gap:8px;">';
-  if(ts) h+='<div class="lts">✓ '+(BACKEND_OK?'Backend live':'Demo')+' · '+fmtd(ts)+'</div>';
-  h+='<div style="font-size:11px;color:var(--muted)">↻ '+REFRESH_SEC+'s</div></div></div>';
+  h+='<div class="sh-sub">Real-time data · Bengaluru · '+new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</div></div>';
+  h+='<div style="display:flex;align-items:center;gap:8px">';
+  if(ts)h+='<div class="lts">✓ '+fmtd(ts)+'</div>';
+  h+='</div></div>';
 
-  if(bySev.critical>0) h+='<div class="alert crit"><span class="alert-ico">🚨</span><div class="alert-txt"><strong style="color:var(--red)">'+bySev.critical+' CRITICAL</strong> issues require immediate action across Bengaluru wards</div><div class="alert-cnt" style="color:var(--red)">'+bySev.critical+'</div></div>';
-  if(bySev.high>2) h+='<div class="alert high"><span class="alert-ico">⚠️</span><div class="alert-txt"><strong style="color:var(--orange)">'+bySev.high+' HIGH</strong> severity issues open — escalation recommended</div><div class="alert-cnt" style="color:var(--orange)">'+bySev.high+'</div></div>';
+  if(bySev.critical>0)h+='<div class="alert crit"><span class="alert-ico">🚨</span><div class="alert-txt"><strong style="color:var(--red)">'+bySev.critical+' CRITICAL</strong> issues require immediate action</div><div class="alert-cnt" style="color:var(--red)">'+bySev.critical+'</div></div>';
+  if(bySev.high>2)h+='<div class="alert high"><span class="alert-ico">⚠️</span><div class="alert-txt"><strong style="color:var(--orange)">'+bySev.high+' HIGH</strong> severity issues open — escalation recommended</div><div class="alert-cnt" style="color:var(--orange)">'+bySev.high+'</div></div>';
 
-  var stats=[
-    {n:open.length,l:'Open Issues',hint:'Need attention',acc:'var(--orange)',tr:'active'},
-    {n:res.length,l:'Resolved',hint:'Closed success.',acc:'var(--green)',tr:'↑ good'},
-    {n:crit.length,l:'Critical',hint:'Immediate action',acc:'var(--red)',tr:'⚠ urgent'},
-    {n:avg,l:'Avg Days Open',hint:'Resolution lag',acc:'var(--yellow)',tr:'SLA'},
-    {n:over.length,l:'Overdue >7d',hint:'SLA breached',acc:'var(--red)',tr:'SLA !'},
-    {n:issues.length,l:'Total Reports',hint:BACKEND_OK?'Saved + synced':'Demo / fallback',acc:'var(--teal)',tr:'↑ all'}
-  ];
+  var stats=[{n:open,l:'Open Issues',h:'Need attention',a:'var(--orange)',t:'active'},{n:res,l:'Resolved',h:'Closed successfully',a:'var(--green)',t:'↑ good'},{n:crit,l:'Critical',h:'Immediate action',a:'var(--red)',t:'⚠ urgent'},{n:avg+'d',l:'Avg Days Open',h:'Resolution lag',a:'var(--yellow)',t:'SLA:30d'},{n:over,l:'Overdue >7d',h:'SLA breached',a:'var(--red)',t:'SLA !'},{n:total,l:'Total Reports',h:'All sources',a:'var(--teal)',t:'↑ all'}];
   h+='<div class="stat-grid">';
-  stats.forEach(function(s,i){
-    h+='<div class="sc" style="--acc:'+s.acc+';animation-delay:'+i*.06+'s">';
-    h+='<div class="sc-trend" style="color:'+s.acc+'">'+s.tr+'</div>';
-    h+='<div class="sc-num">'+s.n+'</div>';
-    h+='<div class="sc-label">'+s.l+'</div>';
-    h+='<div class="sc-hint">'+s.hint+'</div></div>';
-  });
+  stats.forEach(function(s,i){h+='<div class="sc" style="--acc:'+s.a+';animation-delay:'+i*.06+'s"><div class="sc-trend" style="color:'+s.a+'">'+s.t+'</div><div class="sc-num">'+s.n+'</div><div class="sc-label">'+s.l+'</div><div class="sc-hint">'+s.h+'</div></div>';});
   h+='</div>';
 
   h+='<div class="g2">';
-
+  // LEFT: Oldest unresolved timeline
   h+='<div class="pan"><div class="ph"><div class="pt">🔥 Oldest Unresolved Issues</div><div class="sh-act" onclick="nav(\'feed\')">View all →</div></div><div class="tl">';
   oldest.forEach(function(issue,idx){
     var days=dopen(issue.created_at);
-    var dayCol=days>14?'var(--red)':'var(--orange)';
-    h+='<div class="tl-item" style="animation-delay:'+idx*.07+'s" onclick="openDetail(\''+issue.id+'\')">';
+    h+='<div class="tl-item" style="animation-delay:'+idx*.07+'s" onclick="openDetail(\''+esc(issue.issue_id)+'\')">';
     h+='<div class="tl-dot" style="background:'+sc(issue.severity)+'"></div>';
     h+='<div class="tl-card" style="border-left-color:'+sc(issue.severity)+'">';
-    h+='<div class="tl-type">'+esc(issue.issue_type)+' '+spill(issue.severity);
-    if(issue.source&&issue.source!=='citizen'&&issue.source!=='seed') h+=' '+srcbdg(issue.source);
-    h+='</div>';
-    h+='<div class="tl-loc">'+pinsvg()+' '+esc(issue.ward)+(issue.location_name?' · '+esc(issue.location_name):'')+'</div>';
+    h+='<div class="tl-type">'+esc(issue.issue_type)+' '+spill(issue.severity)+(issue.source&&issue.source!=='seed'?' '+srcbdg(issue.source):'')+'</div>';
+    h+='<div class="tl-loc">'+pinsvg()+' '+esc(issue.ward_name||'')+(issue.location_name?' · '+esc(issue.location_name):'')+'</div>';
     h+='<div class="tl-desc">'+esc(issue.description)+'</div>';
     h+='<div class="tl-foot"><div class="tl-ts">📅 '+fmtd(issue.created_at)+'</div>';
-    h+='<div style="display:flex;align-items:center;gap:7px;">';
-    h+='<span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:'+dayCol+'">'+days+'d open</span>';
-    h+='<button onclick="event.stopPropagation();upvote(\''+issue.id+'\',this)" style="display:flex;align-items:center;gap:3px;background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.2);border-radius:5px;padding:3px 8px;color:var(--teal);font-size:11px;font-weight:700;">▲ '+issue.upvotes+'</button>';
+    h+='<div style="display:flex;align-items:center;gap:7px"><span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:'+(days>14?'var(--red)':'var(--orange)')+'">'+days+'d</span>';
+    h+='<button onclick="event.stopPropagation();upvoteIssue(\''+esc(issue.issue_id)+'\',this)" style="display:flex;align-items:center;gap:3px;background:rgba(0,200,150,.1);border:1px solid rgba(0,200,150,.2);border-radius:5px;padding:3px 8px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer">▲ '+issue.upvotes+'</button>';
     h+='</div></div></div></div>';
   });
-  if(!oldest.length) h+='<div style="text-align:center;padding:30px;color:var(--muted)">No open issues</div>';
+  if(!oldest.length)h+='<div style="text-align:center;padding:30px;color:var(--muted)">No open issues yet</div>';
   h+='</div></div>';
 
-  h+='<div style="display:flex;flex-direction:column;gap:13px;">';
+  // RIGHT column
+  h+='<div style="display:flex;flex-direction:column;gap:13px">';
+  // Ward leaderboard from API
   h+='<div class="pan"><div class="ph"><div class="pt">📊 Ward Issue Count</div><div class="sh-act" onclick="nav(\'map\')">Heat Map →</div></div>';
-  var rankCols=['#FFD700','#C0C0C0','#CD7F32'];
-  lb.slice(0,8).forEach(function(w,i){
+  var rkc=['#FFD700','#C0C0C0','#CD7F32'];
+  lb.forEach(function(w,i){
     var pct=Math.round(w.count/maxLb*100);
     var col=pct>75?'var(--red)':pct>45?'var(--orange)':pct>20?'var(--yellow)':'var(--green)';
-    var rc=i<3?rankCols[i]:'var(--muted)';
-    h+='<div class="lbi">';
-    h+='<div class="lb-rank" style="background:'+(i<3?rc+'20':'var(--faint)')+';border:1.5px solid '+(i<3?rc:'var(--b)')+';color:'+rc+'">'+(i+1)+'</div>';
-    h+='<div class="lb-ward">'+esc(w.ward)+'</div>';
+    var rc=i<3?rkc[i]:'var(--muted)';
+    h+='<div class="lbi"><div class="lb-rank" style="background:'+(i<3?rc+'20':'var(--faint)')+';border:1.5px solid '+(i<3?rc:'var(--b)')+';color:'+rc+'">'+(i+1)+'</div>';
+    h+='<div class="lb-ward">'+esc(w.ward_name)+'</div>';
     h+='<div class="lb-track"><div class="lb-fill" style="width:'+pct+'%;background:'+col+'"></div></div>';
     h+='<div class="lb-cnt" style="color:'+col+'">'+w.count+'</div></div>';
   });
-  if(!lb.length) h+='<div style="text-align:center;padding:20px;color:var(--muted)">No data yet</div>';
+  if(!lb.length)h+='<div style="text-align:center;padding:20px;color:var(--muted)">No data yet</div>';
   h+='</div>';
-
+  // Issue type breakdown
   h+='<div class="pan"><div class="ph"><div class="pt">Issues by Type</div></div>';
   topTypes.forEach(function(t){
     var pct=Math.round(t[1]/maxType*100);
-    h+='<div style="margin-bottom:9px">';
-    h+='<div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:3px"><span style="color:var(--sub)">'+esc(t[0])+'</span><span style="color:var(--muted);font-family:\'JetBrains Mono\',monospace">'+t[1]+' ('+pct+'%)</span></div>';
-    h+=prog(pct,'linear-gradient(90deg,#00C896,#3B9EFF)');
-    h+='</div>';
+    h+='<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:3px"><span style="color:var(--sub)">'+esc(t[0])+'</span><span style="color:var(--muted);font-family:\'JetBrains Mono\',monospace">'+t[1]+' ('+pct+'%)</span></div>'+prog(pct,'linear-gradient(90deg,#00C896,#3B9EFF)')+'</div>';
   });
   h+='</div>';
+  h+='</div></div>';// end right col + g2
 
-  h+='<div class="pan"><div class="ph"><div class="pt">Data Sources</div></div>';
-  Object.entries(bySrc).forEach(function(entry){
-    var src=entry[0], cnt=entry[1];
-    var m=SRC_META[src]||SRC_META.citizen;
-    var pct=issues.length?Math.round(cnt/issues.length*100):0;
-    h+='<div style="margin-bottom:8px">';
-    h+='<div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:3px"><span style="color:'+m.color+';font-weight:600">'+m.label+'</span><span style="color:var(--muted);font-family:\'JetBrains Mono\',monospace">'+cnt+'</span></div>';
-    h+=prog(pct,m.color+'90');
-    h+='</div>';
-  });
-  h+='</div>';
-  h+='</div></div>';
-
+  // Most upvoted
   h+='<div class="pan" style="margin-bottom:14px"><div class="ph"><div class="pt">⬆ Community Pressure — Most Upvoted</div><div class="sh-act" onclick="nav(\'feed\')">See all →</div></div>';
   h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">';
   topUV.forEach(function(issue){
-    h+='<div onclick="openDetail(\''+issue.id+'\')" style="background:var(--card);border:1px solid var(--b);border-left:3px solid '+sc(issue.severity)+';border-radius:9px;padding:11px 13px;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'var(--ch)\'" onmouseout="this.style.background=\'var(--card)\'">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">';
-    h+='<div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(issue.issue_type)+'</div>';
-    h+='<div style="font-family:\'JetBrains Mono\',monospace;font-size:16px;font-weight:700;color:var(--teal)">▲'+issue.upvotes+'</div></div>';
-    h+='<div style="font-size:11px;color:var(--muted);margin-bottom:5px">'+esc(issue.ward)+(issue.location_name?' · '+esc(issue.location_name):'')+'</div>';
+    h+='<div onclick="openDetail(\''+esc(issue.issue_id)+'\')" style="background:var(--card);border:1px solid var(--b);border-left:3px solid '+sc(issue.severity)+';border-radius:9px;padding:11px 13px;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'var(--ch)\'" onmouseout="this.style.background=\'var(--card)\'">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px"><div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(issue.issue_type)+'</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:16px;font-weight:700;color:var(--teal)">▲'+issue.upvotes+'</div></div>';
+    h+='<div style="font-size:11px;color:var(--muted);margin-bottom:5px">'+esc(issue.ward_name||'')+'</div>';
     h+='<div style="font-size:12px;color:var(--sub);line-height:1.4">'+esc(issue.description.slice(0,80))+'…</div>';
-    h+='<div style="margin-top:7px;display:flex;gap:5px">'+spill(issue.severity)+' '+stpill(issue.status)+'</div>';
-    h+='</div>';
+    h+='<div style="margin-top:7px;display:flex;gap:5px">'+spill(issue.severity)+' '+stpill(issue.status)+'</div></div>';
   });
   h+='</div></div>';
   return h;
 }
 
+/* ════════════════════════════════════════════════
+   FEED PAGE
+════════════════════════════════════════════════ */
 function pFeed(){
   var filtered=DATA.issues.filter(function(i){
-    if(feedFilter==='open'&&i.status!=='open') return false;
-    if(feedFilter==='resolved'&&i.status!=='resolved'&&i.status!=='closed') return false;
-    if(feedFilter==='critical'&&i.severity!=='critical') return false;
-    if(feedFilter==='high'&&i.severity!=='high') return false;
-    if(feedWard&&i.ward!==feedWard) return false;
-    if(searchQ&&i.description.toLowerCase().indexOf(searchQ)<0&&i.ward.toLowerCase().indexOf(searchQ)<0&&i.issue_type.toLowerCase().indexOf(searchQ)<0) return false;
+    if(feedFilter==='open'&&i.status!=='open')return false;
+    if(feedFilter==='resolved'&&i.status!=='resolved')return false;
+    if(feedFilter==='critical'&&i.severity!=='critical')return false;
+    if(feedFilter==='high'&&i.severity!=='high')return false;
+    if(feedWard&&i.ward_id!=feedWard)return false;
+    if(searchQ&&i.description.toLowerCase().indexOf(searchQ)<0&&(i.ward_name||'').toLowerCase().indexOf(searchQ)<0&&i.issue_type.toLowerCase().indexOf(searchQ)<0)return false;
     return true;
   });
-  var liveCount=DATA.issues.filter(function(i){ return i.source!=='citizen'&&i.source!=='seed'; }).length;
-  var ts=DATA.timestamp;
   var h='';
-
   h+='<div class="sh"><div><div class="sh-title">Live Issue Feed</div>';
-  h+='<div class="sh-sub">'+filtered.length+' issues shown · '+liveCount+' from synced sources'+(ts?' · Updated '+fmtd(ts):'')+'</div></div>';
-  if(ts) h+='<div class="lts">✓ '+fmtd(ts)+'</div>';
+  h+='<div class="sh-sub">'+filtered.length+' issues · '+DATA.issues.filter(function(i){return i.source==='citizen';}).length+' citizen reports'+(DATA.timestamp?' · '+fmtd(DATA.timestamp):'')+'</div></div>';
+  if(DATA.timestamp)h+='<div class="lts">✓ '+fmtd(DATA.timestamp)+'</div>';
   h+='</div>';
-
   h+='<div class="frow">';
-  ['all','open','resolved','critical','high'].forEach(function(f){
-    h+='<div class="fc '+(feedFilter===f?'on':'')+'" onclick="feedFilter=\''+f+'\';render()">'+f.charAt(0).toUpperCase()+f.slice(1)+'</div>';
-  });
-  h+='<select class="fsel" onchange="feedWard=this.value;render()"><option value="">All Wards</option>';
-  Object.entries(WARDS_BY_ZONE).forEach(function(zEntry){
-    h+='<optgroup label="── '+zEntry[0]+' ──">';
-    zEntry[1].forEach(function(w){ h+='<option value="'+esc(w)+'"'+(feedWard===w?' selected':'')+'>'+esc(w)+'</option>'; });
-    h+='</optgroup>';
-  });
+  ['all','open','resolved','critical','high'].forEach(function(f){h+='<div class="fc '+(feedFilter===f?'on':'')+'" onclick="feedFilter=\''+f+'\';render()">'+f.charAt(0).toUpperCase()+f.slice(1)+'</div>';});
+  h+='<select class="fsel" onchange="feedWard=this.value;render()" style="max-width:180px"><option value="">All Wards (198)</option>';
+  WARDS_198.forEach(function(w){h+='<option value="'+w.id+'"'+(feedWard==w.id?' selected':'')+'>'+esc(w.n)+'</option>';});
   h+='</select>';
-  h+='<div style="margin-left:auto;font-size:11px;color:var(--muted)">'+filtered.length+' / '+DATA.issues.length+'</div>';
-  h+='</div>';
-
+  h+='<div style="margin-left:auto;font-size:11px;color:var(--muted)">'+filtered.length+' / '+DATA.issues.length+'</div></div>';
   h+='<div class="tl">';
-  if(!filtered.length) h+='<div style="text-align:center;padding:40px;color:var(--muted)">No issues match the current filter</div>';
+  if(!filtered.length)h+='<div style="text-align:center;padding:40px;color:var(--muted)">No issues match the current filter</div>';
   filtered.forEach(function(issue,idx){
-    h+='<div class="tl-item" style="animation-delay:'+Math.min(idx*.04,.4)+'s" onclick="openDetail(\''+issue.id+'\')">';
+    h+='<div class="tl-item" style="animation-delay:'+Math.min(idx*.04,.4)+'s" onclick="openDetail(\''+esc(issue.issue_id)+'\')">';
     h+='<div class="tl-dot" style="background:'+sc(issue.severity)+'"></div>';
     h+='<div class="tl-card" style="border-left-color:'+sc(issue.severity)+'">';
-    h+='<div class="tl-type">'+esc(issue.issue_type)+' '+spill(issue.severity)+' '+stpill(issue.status);
-    if(issue.source&&issue.source!=='citizen'&&issue.source!=='seed') h+=' '+srcbdg(issue.source);
-    h+='</div>';
-    h+='<div class="tl-loc">'+pinsvg()+' '+esc(issue.ward)+(issue.location_name?' · '+esc(issue.location_name):'')+'</div>';
-    if(issue.image_url) h+='<img src="'+issue.image_url+'" style="width:100%;max-height:140px;object-fit:cover;border-radius:7px;margin:7px 0">';
+    h+='<div class="tl-type">'+esc(issue.issue_type)+' '+spill(issue.severity)+' '+stpill(issue.status)+(issue.source&&issue.source!=='seed'?' '+srcbdg(issue.source):'')+'</div>';
+    h+='<div class="tl-loc">'+pinsvg()+' '+esc(issue.ward_name||'')+(issue.location_name?' · '+esc(issue.location_name):'')+'</div>';
+    if(issue.image_url)h+='<img src="'+esc(issue.image_url)+'" style="width:100%;max-height:140px;object-fit:cover;border-radius:7px;margin:7px 0">';
     h+='<div class="tl-desc">'+esc(issue.description)+'</div>';
     h+='<div class="tl-foot">';
-    h+='<div class="tl-ts">📅 '+fmtd(issue.created_at)+(issue.latitude?' · 📍 '+Number(issue.latitude).toFixed(4)+','+Number(issue.longitude).toFixed(4):'')+'</div>';
+    h+='<div class="tl-ts">📅 '+fmtd(issue.created_at)+(issue.latitude?' · 📍 '+parseFloat(issue.latitude).toFixed(4)+','+parseFloat(issue.longitude).toFixed(4):'')+'</div>';
     h+='<div style="display:flex;gap:7px">';
-    h+='<button onclick="event.stopPropagation();upvote(\''+issue.id+'\',this)" style="display:flex;align-items:center;gap:3px;background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.2);border-radius:5px;padding:3px 8px;color:var(--teal);font-size:11px;font-weight:700;">▲ '+issue.upvotes+'</button>';
-    h+='<button onclick="event.stopPropagation();openEsc(\''+issue.id+'\')" style="display:flex;align-items:center;gap:3px;background:var(--faint);border:1px solid var(--b);border-radius:5px;padding:3px 8px;color:var(--muted);font-size:11px;">⬆ Share</button>';
+    h+='<button onclick="event.stopPropagation();upvoteIssue(\''+esc(issue.issue_id)+'\',this)" style="display:flex;align-items:center;gap:3px;background:rgba(0,200,150,.08);border:1px solid rgba(0,200,150,.2);border-radius:5px;padding:3px 8px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer">▲ '+issue.upvotes+'</button>';
+    h+='<button onclick="event.stopPropagation();openEsc(\''+esc(issue.issue_id)+'\')" style="display:flex;align-items:center;gap:3px;background:var(--faint);border:1px solid var(--b);border-radius:5px;padding:3px 8px;color:var(--muted);font-size:11px;cursor:pointer">⬆ Share</button>';
     h+='</div></div></div></div>';
   });
   h+='</div>';
   return h;
 }
 
+/* ════════════════════════════════════════════════
+   MAP PAGE
+════════════════════════════════════════════════ */
 function pMap(){
-  var lb=DATA.leaderboard.length?DATA.leaderboard:lbFromIssues(DATA.issues);
   var wc={};
-  lb.forEach(function(w){ wc[w.ward]=w.count; });
-  var max=lb.length?lb[0].count:1;
-  var geoIssues=DATA.issues.filter(function(i){ return i.latitude&&i.longitude; }).slice(0,12);
-  var ts=DATA.timestamp;
+  DATA.heatmap.forEach(function(r){wc[r.ward_name]=r.count;});
+  // Also count from issues if heatmap empty
+  if(!DATA.heatmap.length){
+    DATA.issues.forEach(function(i){if(i.ward_name&&i.status==='open')wc[i.ward_name]=(wc[i.ward_name]||0)+1;});
+  }
+  var maxV=Math.max.apply(null,Object.values(wc).concat([1]));
+  var heatWards=WARDS_198.slice().sort(function(a,b){return (wc[b.n]||0)-(wc[a.n]||0);}).slice(0,40);
   var h='';
-
   h+='<div class="sh"><div><div class="sh-title">Ward Heat Map</div>';
-  h+='<div class="sh-sub">Issue density by ward · '+DATA.issues.length+' total datapoints'+(ts?' · '+fmtd(ts):'')+'</div></div>';
-  if(ts) h+='<div class="lts">✓ Live · '+fmtd(ts)+'</div>';
-  h+='</div>';
-
-  h+='<div class="g2"><div>';
+  h+='<div class="sh-sub">Issue density · '+DATA.issues.filter(function(i){return i.status==='open';}).length+' open issues across '+Object.keys(wc).length+' wards'+(DATA.timestamp?' · '+fmtd(DATA.timestamp):'')+'</div></div>';
+  if(DATA.timestamp)h+='<div class="lts">✓ '+fmtd(DATA.timestamp)+'</div></div>';
+  else h+='</div>';
+  h+='<div class="g2">';
+  h+='<div>';
   h+='<div class="pan" style="margin-bottom:13px"><div class="ph"><div class="pt">Ward Intensity Grid</div><div style="font-size:11px;color:var(--muted)">Click ward to filter feed</div></div>';
-  var heatWards = WARDS.slice().sort(function(a,b){ return (wc[b]||0)-(wc[a]||0); }).slice(0,40);
   h+='<div class="heat-grid">';
   heatWards.forEach(function(w){
-    var c=wc[w]||0, pct=max?c/max:0;
+    var c=wc[w.n]||0,pct=maxV?c/maxV:0;
     var bg=pct>.7?'#FF3355':pct>.45?'#FF8C00':pct>.2?'#FFD60A':'rgba(255,255,255,0.04)';
     var tc=pct>.2?'#fff':'var(--muted)';
-    var sel=wardSel===w;
-    h+='<div class="heat-cell'+(sel?' sel':'')+'" style="background:'+bg+';opacity:'+(c>0?.9:.25)+'" onclick="selWard(\''+safeEsc(w)+'\')" title="'+esc(w)+': '+c+' issues">';
-    h+='<div class="wn" style="color:'+tc+'">'+esc(w)+'</div>';
-    if(c>0) h+='<div class="wc" style="color:#fff">'+c+'</div>';
+    h+='<div class="heat-cell'+(wardSel===w.n?' sel':'')+'" style="background:'+bg+';opacity:'+(c>0?.9:.25)+'" onclick="selWard(\''+esc(w.n)+'\','+w.id+')" title="'+esc(w.n)+': '+c+' issues">';
+    h+='<div class="wn" style="color:'+tc+'">'+esc(w.n)+'</div>';
+    if(c>0)h+='<div class="wc" style="color:#fff">'+c+'</div>';
     h+='</div>';
   });
   h+='</div>';
-  h+='<div class="heat-leg">';
+  h+='<div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;font-size:10px;color:var(--muted)">';
   [['#FF3355','Critical (>70%)'],['#FF8C00','High (>45%)'],['#FFD60A','Medium (>20%)'],['rgba(255,255,255,.12)','Low']].forEach(function(l){
-    h+='<div class="hl-item"><div class="hl-dot" style="background:'+l[0]+'"></div>'+l[1]+'</div>';
+    h+='<span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:'+l[0]+';display:inline-block"></span>'+l[1]+'</span>';
   });
   h+='</div>';
-  if(wardSel){
-    h+='<div style="margin-top:12px;padding:8px 12px;background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.18);border-radius:8px;font-size:12px;color:var(--teal);display:flex;justify-content:space-between;align-items:center">';
-    h+='<span>Filtered: <strong>'+esc(wardSel)+'</strong></span><button onclick="wardSel=\'\';feedWard=\'\';render()" style="background:none;border:none;color:var(--teal);font-size:12px;font-weight:700;cursor:pointer">Clear ✕</button></div>';
-  }
+  if(wardSel)h+='<div style="margin-top:12px;padding:8px 12px;background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.18);border-radius:8px;font-size:12px;color:var(--teal);display:flex;justify-content:space-between;align-items:center"><span>Filtered: <strong>'+esc(wardSel)+'</strong></span><button onclick="wardSel=\'\';feedWard=\'\';render()" style="background:none;border:none;color:var(--teal);font-size:12px;font-weight:700;cursor:pointer">Clear ✕</button></div>';
   h+='</div>';
-
-  if(geoIssues.length){
-    h+='<div class="pan"><div class="ph"><div class="pt">📍 Geo-tagged Issues</div><div class="pm">'+geoIssues.length+' with coordinates</div></div>';
-    h+='<div style="font-size:11px;color:var(--muted);margin-bottom:10px">Coordinates from backend</div>';
-    geoIssues.forEach(function(i,idx){
-      h+='<div style="display:flex;gap:8px;align-items:center;padding:7px 0;border-bottom:'+(idx<geoIssues.length-1?'1px solid var(--b)':'none')+';cursor:pointer" onclick="openDetail(\''+i.id+'\')">';
-      h+='<div style="width:6px;height:6px;border-radius:50%;background:'+sc(i.severity)+';flex-shrink:0"></div>';
-      h+='<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(i.issue_type)+' — '+esc(i.ward)+'</div>';
-      h+='<div style="font-size:10.5px;color:var(--muted);font-family:\'JetBrains Mono\',monospace">'+Number(i.latitude).toFixed(5)+', '+Number(i.longitude).toFixed(5)+'</div></div>';
-      h+=spill(i.severity)+'</div>';
-    });
-    h+='</div>';
-  }
-  h+='</div>';
-
-  h+='<div style="display:flex;flex-direction:column;gap:13px;">';
+  // Top affected locations
+  h+='<div class="pan"><div class="ph"><div class="pt">📍 Top Affected Streets</div></div>';
+  [].concat(DATA.issues).sort(function(a,b){return b.upvotes-a.upvotes;}).slice(0,10).forEach(function(issue,i){
+    h+='<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:'+(i<9?'1px solid var(--b)':'none')+';cursor:pointer" onclick="openDetail(\''+esc(issue.issue_id)+'\')">';
+    h+='<div style="width:6px;height:6px;border-radius:50%;background:'+sc(issue.severity)+';flex-shrink:0"></div>';
+    h+='<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(issue.location_name||issue.ward_name||'')+'</div>';
+    h+='<div style="font-size:11px;color:var(--muted)">'+esc(issue.issue_type)+' · '+dopen(issue.created_at)+'d open</div></div>';
+    h+=spill(issue.severity)+'</div>';
+  });
+  h+='</div></div>';
+  // Right: ward rankings
+  h+='<div style="display:flex;flex-direction:column;gap:13px">';
   h+='<div class="pan"><div class="ph"><div class="pt">Ward Rankings</div></div>';
-  lb.slice(0,10).forEach(function(w,i){
-    var pct=Math.round(w.count/max*100);
+  DATA.leaderboard.slice(0,10).forEach(function(w,i){
+    var pct=DATA.leaderboard[0]?Math.round(w.count/DATA.leaderboard[0].count*100):0;
     var col=pct>75?'var(--red)':pct>45?'var(--orange)':pct>20?'var(--yellow)':'var(--green)';
     var rc=i===0?'#FFD700':i===1?'#C0C0C0':i===2?'#CD7F32':'var(--muted)';
-    h+='<div class="lbi" style="cursor:pointer" onclick="selWard(\''+safeEsc(w.ward)+'\')">';
+    h+='<div class="lbi" style="cursor:pointer" onclick="selWard(\''+esc(w.ward_name)+'\',null)">';
     h+='<div class="lb-rank" style="background:'+(i<3?rc+'20':'var(--faint)')+';border:1.5px solid '+(i<3?rc:'var(--b)')+';color:'+(i<3?rc:'var(--muted)')+'">'+(i+1)+'</div>';
-    h+='<div class="lb-ward" style="font-size:12px">'+esc(w.ward)+'</div>';
+    h+='<div class="lb-ward" style="font-size:12px">'+esc(w.ward_name)+'</div>';
     h+='<div class="lb-track"><div class="lb-fill" style="width:'+pct+'%;background:'+col+'"></div></div>';
     h+='<div class="lb-cnt" style="color:'+col+'">'+w.count+'</div></div>';
   });
+  if(!DATA.leaderboard.length)h+='<div style="text-align:center;padding:20px;color:var(--muted)">No data yet</div>';
   h+='</div>';
-
-  h+='<div class="pan"><div class="ph"><div class="pt">Severity Distribution</div></div>';
+  h+='<div class="pan"><div class="ph"><div class="pt">Severity Split</div></div>';
   ['critical','high','medium','low'].forEach(function(s){
-    var cnt=DATA.issues.filter(function(i){ return i.severity===s&&i.status==='open'; }).length;
+    var cnt=DATA.issues.filter(function(i){return i.severity===s&&i.status==='open';}).length;
     var pct=DATA.issues.length?Math.round(cnt/DATA.issues.length*100):0;
-    h+='<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">';
-    h+='<span style="color:'+sc(s)+';font-weight:700;text-transform:capitalize">'+s+'</span>';
-    h+='<span style="color:var(--muted);font-family:\'JetBrains Mono\',monospace">'+cnt+' ('+pct+'%)</span></div>';
-    h+=prog(pct,sc(s))+'</div>';
+    h+='<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:'+sc(s)+';font-weight:700;text-transform:capitalize">'+s+'</span><span style="color:var(--muted);font-family:\'JetBrains Mono\',monospace">'+cnt+' ('+pct+'%)</span></div>'+prog(pct,sc(s))+'</div>';
   });
-  h+='</div>';
-
   h+='</div></div>';
+  h+='</div>';
   return h;
 }
 
+/* ════════════════════════════════════════════════
+   HALL PAGE
+════════════════════════════════════════════════ */
 function pHall(){
-  var wardNames = Object.keys(WARD_META).length ? Object.keys(WARD_META) : Object.keys(OFFICIALS);
-
-  var officers=wardNames.map(function(ward){
-    var off=getOfficerForWard(ward);
-    var wi=DATA.issues.filter(function(i){ return i.ward===ward; });
-    var open=wi.filter(function(i){ return i.status==='open'; });
-    var crit=open.filter(function(i){ return i.severity==='critical'; }).length;
-    var maxD=open.length?Math.max.apply(null,open.map(function(i){ return dopen(i.created_at); })):0;
-    var liveOpen=open.length;
-    var resCount = off.res || wi.filter(function(i){ return i.status==='resolved'||i.status==='closed'; }).length;
-    var pendCount = off.pend || liveOpen;
-    var avgDays = off.avg || (open.length ? Math.round(open.reduce(function(a,i){ return a+dopen(i.created_at); },0)/open.length) : 0);
-    var fame=resCount*8-Math.max(pendCount,liveOpen)*5-Math.floor(avgDays*1.5);
-    var shame=Math.max(pendCount,liveOpen)*6+crit*10+maxD+avgDays*2-resCount*3;
-    return {
-      ward:ward,av:off.av || 'BB',bbmp:off.bbmp,dept:off.dept,mla:off.mla,
-      res:resCount,pend:pendCount,avg:avgDays,liveOpen:liveOpen,crit:crit,maxD:maxD,
-      fame:fame,shame:shame
-    };
-  });
-
-  var list=[].concat(officers).sort(function(a,b){ return hallMode==='fame'?b.fame-a.fame:b.shame-a.shame; });
-  var pCols=hallMode==='fame'?['#FFD700','#C0C0C0','#CD7F32']:['#FF3355','#FF6B35','#FF8C00'];
-  var top3=list.slice(0,3), rest=list.slice(3,12);
-  var slaBreach=DATA.issues.filter(function(i){ return i.status==='open'&&dopen(i.created_at)>14; }).sort(function(a,b){ return dopen(b.created_at)-dopen(a.created_at); });
+  var ZONE_OFFICIALS=[
+    {zone:"Yelahanka",   zc:"Zonal Commissioner – Yelahanka",   jc:"Joint Commissioner – Yelahanka",   swm:"Ramky Enviro Engineers Ltd"},
+    {zone:"Dasarahalli", zc:"Zonal Commissioner – Dasarahalli", jc:"Joint Commissioner – Dasarahalli", swm:"Hasiru Dala Innovations"},
+    {zone:"RR Nagar",    zc:"Zonal Commissioner – RR Nagar",    jc:"Joint Commissioner – RR Nagar",    swm:"Antony Waste Handling Cell"},
+    {zone:"West",        zc:"Zonal Commissioner – West",        jc:"Joint Commissioner – West",        swm:"Urbaser Sumeet"},
+    {zone:"East",        zc:"Zonal Commissioner – East",        jc:"Joint Commissioner – East",        swm:"SLR Enviro Services"},
+    {zone:"Mahadevapura",zc:"Zonal Commissioner – Mahadevapura",jc:"Joint Commissioner – Mahadevapura",swm:"Ramky Enviro Engineers Ltd"},
+    {zone:"Bommanahalli",zc:"Zonal Commissioner – Bommanahalli",jc:"Joint Commissioner – Bommanahalli",swm:"Antony Waste Handling Cell"},
+    {zone:"South",       zc:"Zonal Commissioner – South",       jc:"Joint Commissioner – South",       swm:"Urbaser Sumeet"},
+  ];
+  var zoneCounts={};
+  DATA.issues.forEach(function(i){if(i.status==='open'&&i.zone)zoneCounts[i.zone]=(zoneCounts[i.zone]||0)+1;});
+  var sorted=ZONE_OFFICIALS.map(function(z){return {...z,count:zoneCounts[z.zone]||0};}).sort(function(a,b){return hallMode==='fame'?a.count-b.count:b.count-a.count;});
+  var slaBreach=DATA.issues.filter(function(i){return i.status==='open'&&dopen(i.created_at)>14;}).sort(function(a,b){return dopen(b.created_at)-dopen(a.created_at);});
   var h='';
-
   h+='<div class="sh"><div><div class="sh-title">'+(hallMode==='fame'?'🏆 Hall of Fame':'💀 Hall of Shame')+'</div>';
-  h+='<div class="sh-sub">'+(hallMode==='fame'?'Best resolving wards / mapped owners':'Wards with most unresolved & overdue issues')+' · Live data</div></div></div>';
-
+  h+='<div class="sh-sub">'+(hallMode==='fame'?'Zones resolving issues fastest':'Zones with most unresolved issues')+' · Live from database</div></div></div>';
   h+='<div class="tabrow" style="max-width:340px;margin-bottom:20px">';
-  h+='<button class="tbtn'+(hallMode==='fame'?' on':'')+'" onclick="hallMode=\'fame\';render()" style="'+(hallMode==='fame'?'background:linear-gradient(135deg,rgba(0,200,150,.15),rgba(59,158,255,.1));color:var(--teal)':'')+'" >🏆 Hall of Fame</button>';
-  h+='<button class="tbtn'+(hallMode==='shame'?' on':'')+'" onclick="hallMode=\'shame\';render()" style="'+(hallMode==='shame'?'background:rgba(255,51,85,.1);color:var(--red)':'')+'" >💀 Hall of Shame</button>';
+  h+='<button class="tbtn '+(hallMode==='fame'?'on':'')+'" onclick="hallMode=\'fame\';render()" style="'+(hallMode==='fame'?'background:linear-gradient(135deg,rgba(0,200,150,.15),rgba(59,158,255,.1));color:var(--teal)':'')+'" >🏆 Hall of Fame</button>';
+  h+='<button class="tbtn '+(hallMode==='shame'?'on':'')+'" onclick="hallMode=\'shame\';render()" style="'+(hallMode==='shame'?'background:rgba(255,51,85,.1);color:var(--red)':'')+'" >💀 Hall of Shame</button>';
   h+='</div>';
-
-  h+='<div class="g2"><div><div class="pan" style="margin-bottom:13px">';
+  h+='<div class="g2">';
+  h+='<div>';
+  h+='<div class="pan" style="margin-bottom:13px">';
+  // Podium top 3
+  var top3=sorted.slice(0,3);var pCols=hallMode==='fame'?['#FFD700','#C0C0C0','#CD7F32']:['#FF3355','#FF6B35','#FF8C00'];
   h+='<div class="pod-wrap">';
   [1,0,2].forEach(function(idx){
-    var o=top3[idx]; if(!o) return;
-    var col=pCols[idx], isFirst=idx===0;
-    var metric=hallMode==='fame'?o.res:(o.liveOpen||o.pend);
+    var o=top3[idx];if(!o)return;
+    var col=pCols[idx],isFirst=idx===0;
     h+='<div class="pod-col">';
-    if(isFirst) h+='<div style="font-size:20px;margin-bottom:5px">'+(hallMode==='fame'?'🥇':'💀')+'</div>';
-    h+='<div class="pod-av" style="width:'+(isFirst?52:42)+'px;height:'+(isFirst?52:42)+'px;font-size:'+(isFirst?17:14)+'px;background:'+col+'18;border:2.5px solid '+col+';color:'+col+'">'+esc(o.av)+'</div>';
-    h+='<div style="font-size:12px;font-weight:700;color:var(--text);margin-top:5px;line-height:1.3">'+esc(o.bbmp)+'</div>';
-    h+='<div style="font-size:10px;color:var(--muted)">'+esc(o.ward)+'</div>';
+    if(isFirst)h+='<div style="font-size:20px;margin-bottom:5px">'+(hallMode==='fame'?'🥇':'💀')+'</div>';
+    h+='<div class="pod-av" style="width:'+(isFirst?52:42)+'px;height:'+(isFirst?52:42)+'px;font-size:'+(isFirst?14:11)+'px;background:'+col+'18;border:2.5px solid '+col+';color:'+col+'">'+esc(o.zone.slice(0,3).toUpperCase())+'</div>';
+    h+='<div style="font-size:12px;font-weight:700;color:var(--text);margin-top:5px;line-height:1.3">'+esc(o.zone)+'</div>';
     h+='<div class="pod-box" style="background:'+col+'18;border:1px solid '+col+'40">';
-    h+='<div class="pod-n" style="color:'+col+'">#'+(idx+1)+'</div>';
-    h+='<div class="pod-v" style="color:'+col+';font-size:'+(isFirst?24:18)+'px">'+metric+'</div>';
-    h+='<div class="pod-s">'+(hallMode==='fame'?'resolved':'pending')+'</div></div></div>';
+    h+='<div style="font-size:9px;color:'+col+';font-weight:700;text-transform:uppercase">#'+(idx+1)+'</div>';
+    h+='<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:'+(isFirst?24:18)+'px;color:'+col+'">'+o.count+'</div>';
+    h+='<div style="font-size:9px;color:var(--muted)">open issues</div></div></div>';
   });
   h+='</div>';
-
-  h+='<div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:16px 0 10px">Rankings</div>';
-  rest.forEach(function(o,i){
-    var score=Math.max(hallMode==='fame'?o.fame:o.shame,0);
-    var metric=hallMode==='fame'?o.res+' resolved · avg '+o.avg+'d':(o.liveOpen||o.pend)+' pending · '+o.crit+' critical · max '+o.maxD+'d';
+  // Full list
+  h+='<div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:16px 0 10px">All Zones — Live Data</div>';
+  sorted.slice(3).forEach(function(o,i){
+    var col=i===0?pCols[0]:i===1?pCols[1]:i===2?pCols[2]:'var(--muted)';
     h+='<div class="orow">';
-    h+='<div class="lb-rank" style="background:var(--faint);border:1.5px solid var(--b);color:var(--muted);width:24px;height:24px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">'+(i+4)+'</div>';
-    h+='<div class="oav" style="background:'+(hallMode==='shame'?'rgba(255,51,85,.12)':'rgba(0,200,150,.1)')+';border:2px solid var(--b);color:var(--muted)">'+esc(o.av)+'</div>';
-    h+='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">'+esc(o.bbmp)+'</div>';
-    h+='<div style="font-size:11px;color:var(--muted)">'+esc(o.dept)+' · '+esc(o.ward)+'</div>';
-    h+='<div style="font-size:11px;color:var(--muted);margin-top:1px">'+metric+'</div></div>';
-    h+='<div style="font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:700;color:'+(hallMode==='fame'?'var(--green)':'var(--red)')+';text-align:right">'+score+'<div style="font-size:9px;color:var(--muted);font-weight:400">pts</div></div></div>';
+    h+='<div style="width:24px;height:24px;border-radius:50%;background:var(--faint);border:1.5px solid var(--b);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--muted);flex-shrink:0">'+(i+4)+'</div>';
+    h+='<div class="oav" style="background:rgba(0,200,150,.1);border:2px solid var(--b);color:var(--teal)">'+esc(o.zone.slice(0,2).toUpperCase())+'</div>';
+    h+='<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">'+esc(o.zone)+' Zone</div>';
+    h+='<div style="font-size:11px;color:var(--muted)">'+esc(o.swm)+'</div></div>';
+    h+='<div style="font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:700;color:'+(hallMode==='shame'?'var(--red)':'var(--green)')+'">'+o.count+'<div style="font-size:9px;color:var(--muted);font-weight:400">open</div></div></div>';
   });
   h+='</div></div>';
-
-  h+='<div style="display:flex;flex-direction:column;gap:13px;">';
+  // Right: SLA breach
+  h+='<div style="display:flex;flex-direction:column;gap:13px">';
   h+='<div class="pan" style="background:rgba(255,51,85,.03);border-color:rgba(255,51,85,.13)">';
-  h+='<div class="ph"><div class="pt" style="color:var(--red)">⚠ SLA Breached — Live Data</div><div class="pm">'+slaBreach.length+' issues &gt;14d</div></div>';
+  h+='<div class="ph"><div class="pt" style="color:var(--red)">⚠ SLA Breached — Live Data</div><div class="pm">'+slaBreach.length+' issues >14d</div></div>';
   if(!slaBreach.length){
     h+='<div style="text-align:center;padding:20px;color:var(--muted)">✓ No issues currently breaching SLA</div>';
   } else {
     slaBreach.slice(0,6).forEach(function(issue,i){
-      var off=getOfficerForWard(issue.ward);
       h+='<div style="padding:9px 0;border-bottom:'+(i<5?'1px solid rgba(255,51,85,.1)':'none')+'">';
       h+='<div style="display:flex;justify-content:space-between;align-items:flex-start">';
-      h+='<div style="flex:1;min-width:0">';
-      h+='<div style="font-size:13px;font-weight:600;color:var(--text)">'+esc(issue.issue_type)+' · '+esc(issue.ward)+'</div>';
+      h+='<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">'+esc(issue.issue_type)+' · '+esc(issue.ward_name||'')+'</div>';
       h+='<div style="font-size:11px;color:var(--muted);margin:2px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(issue.description.slice(0,60))+'…</div>';
-      h+='<div style="font-size:10.5px;color:var(--muted)">👤 '+esc(off.bbmp)+' · '+fmtd(issue.created_at)+'</div></div>';
-      h+='<div style="text-align:right;flex-shrink:0;margin-left:10px">';
-      h+='<div style="font-family:\'JetBrains Mono\',monospace;font-weight:800;font-size:18px;color:var(--red)">'+dopen(issue.created_at)+'d</div>';
-      h+=spill(issue.severity)+'</div></div></div>';
+      h+='<div style="font-size:10.5px;color:var(--muted)">MLA: '+esc(issue.mla||'—')+'</div></div>';
+      h+='<div style="text-align:right;flex-shrink:0;margin-left:10px"><div style="font-family:\'JetBrains Mono\',monospace;font-weight:800;font-size:18px;color:var(--red)">'+dopen(issue.created_at)+'d</div>'+spill(issue.severity)+'</div></div></div>';
     });
   }
   h+='</div>';
+  // Zone resolution performance
+  h+='<div class="pan"><div class="ph"><div class="pt">Zone Open Issues</div></div>';
+  ZONE_OFFICIALS.forEach(function(z){
+    var cnt=zoneCounts[z.zone]||0;
+    var maxCnt=Math.max.apply(null,Object.values(zoneCounts).concat([1]));
+    var pct=Math.round(cnt/maxCnt*100);
+    var col=pct>75?'var(--red)':pct>45?'var(--orange)':pct>20?'var(--yellow)':'var(--green)';
+    h+='<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:3px"><span style="color:var(--sub);font-weight:500">'+z.zone+'</span><span style="color:'+col+';font-family:\'JetBrains Mono\',monospace;font-weight:700">'+cnt+'</span></div>'+prog(pct,col)+'</div>';
+  });
+  h+='</div></div></div>';
+  return h;
+}
 
-  h+='<div class="pan"><div class="ph"><div class="pt">Ward Resolution Rate</div></div>';
-  officers.slice(0,7).forEach(function(o){
-    var total=o.res+Math.max(o.pend,o.liveOpen);
-    var rate=total>0?Math.round(o.res/total*100):0;
-    var col=rate>70?'var(--green)':rate>40?'var(--orange)':'var(--red)';
-    h+='<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:3px">';
-    h+='<span style="color:var(--sub);font-weight:500">'+esc(o.ward)+'</span>';
-    h+='<span style="color:'+col+';font-family:\'JetBrains Mono\',monospace;font-weight:700">'+rate+'%</span></div>';
-    h+=prog(rate,col)+'</div>';
+/* ════════════════════════════════════════════════
+   DATA SOURCES STATUS PAGE
+════════════════════════════════════════════════ */
+function pStatus(){
+  var h='';
+  h+='<div class="sh"><div><div class="sh-title">Data Sources</div>';
+  h+='<div class="sh-sub">Ingestion health · Background jobs status</div></div>';
+  h+='<button onclick="triggerIngest()" style="display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#9B6DFF,#3B9EFF);border:none;border-radius:8px;padding:8px 16px;color:#fff;font-size:12px;font-weight:700;cursor:pointer">⚡ Trigger Ingestion</button></div>';
+
+  var sources=[
+    {key:'reddit',   name:'Reddit r/bangalore', icon:'🟠',desc:'Civic complaints from the Bangalore subreddit · Runs every 2 hours'},
+    {key:'news_rss', name:'Google News RSS',     icon:'📰',desc:'Bengaluru civic news via RSS feeds · Runs every 1 hour'},
+    {key:'opencity_csv',name:'OpenCity CSV',     icon:'📊',desc:'BBMP pothole dataset · Runs daily at 3:00 AM'},
+    {key:'citizen',  name:'Citizen Reports',     icon:'👤',desc:'Issues reported directly via this dashboard · Real-time'},
+  ];
+
+  h+='<div style="margin-bottom:20px">';
+  sources.forEach(function(src){
+    var info=INGEST_STATUS[src.key]||{status:'never_run'};
+    var dotCls=info.status==='success'?'ok':info.status==='never_run'?'never':'fail';
+    h+='<div class="src-card">';
+    h+='<div style="font-size:20px">'+src.icon+'</div>';
+    h+='<span class="src-dot '+dotCls+'"></span>';
+    h+='<div style="flex:1"><div class="src-name">'+src.name+'</div>';
+    h+='<div class="src-meta">'+src.desc+'</div>';
+    if(info.run_at)h+='<div class="src-meta" style="margin-top:3px">Last run: '+fmtd(info.run_at)+' · '+esc(info.issues_new||0)+' new issues</div>';
+    if(info.error_message)h+='<div class="src-meta" style="color:var(--red);margin-top:3px">Error: '+esc(info.error_message)+'</div>';
+    h+='</div>';
+    h+='<div style="text-align:right"><div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:'+(dotCls==='ok'?'var(--green)':dotCls==='fail'?'var(--red)':'var(--muted)')+'">'+info.status+'</div>';
+    if(info.issues_new)h+='<div style="font-size:11px;color:var(--muted)">+'+info.issues_new+' new</div>';
+    h+='</div></div>';
   });
   h+='</div>';
 
+  h+='<div class="pan" style="margin-bottom:14px">';
+  h+='<div class="ph"><div class="pt">Why live scraping is hard — and what we do instead</div></div>';
+  h+='<div style="font-size:13px;color:var(--sub);line-height:1.7">';
+  h+='<strong style="color:var(--text)">Reddit (r/bangalore):</strong> The public JSON API rate-limits heavily. We use authenticated PRAW if <code style="background:var(--faint);padding:1px 5px;border-radius:3px">REDDIT_CLIENT_ID</code> env variable is set — much more reliable. Register free at <em>reddit.com/prefs/apps</em>.<br><br>';
+  h+='<strong style="color:var(--text)">Google News RSS:</strong> Returns headlines only — no ward, no coordinates. NLP is needed to extract location. We scrape and store; do not live-fetch per user request.<br><br>';
+  h+='<strong style="color:var(--text)">OpenCity CSV:</strong> URL is sometimes unavailable. We download once daily at 3 AM and cache in the database.<br><br>';
+  h+='<strong style="color:var(--text)">Citizen Reports:</strong> Most reliable source — reported directly by users, stored persistently in SQLite database, never lost on refresh.';
   h+='</div></div>';
-  return h;
-}
 
-function pClusters(){
-  var clusters=DATA.clusters.length?DATA.clusters:seedClusters();
-  var h='';
-  h+='<div class="sh"><div><div class="sh-title">Issue Clusters</div>';
-  h+='<div class="sh-sub">Similar issues grouped · '+clusters.length+' cluster'+(clusters.length!==1?'s':'')+' identified</div></div></div>';
-
-  if(!clusters.length){
-    h+='<div style="text-align:center;padding:48px;color:var(--muted)"><div style="font-size:32px;margin-bottom:12px">🔍</div>No clusters yet — fetch live data to see groupings</div>';
-    return h;
-  }
-
-  clusters.forEach(function(cl,ci){
-    var items=cl.items||[];
-    var sev=items.length?items[0].severity:'medium';
-    h+='<div class="clus" style="border-left-color:'+sc(sev)+';animation:fadeUp .4s ease '+ci*.1+'s backwards">';
-    h+='<div class="clus-lbl" style="color:'+sc(sev)+'">📌 Cluster '+(ci+1)+' · '+items.length+' related issue'+(items.length!==1?'s':'')+'</div>';
-    h+='<div class="clus-desc">'+esc(cl.cluster||'Related civic issues grouped together')+'</div>';
-    if(items.length){
-      h+='<div class="clus-cnt">'+fmtd(items[0].created_at||'')+'</div>';
-      h+='<div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">';
-      items.slice(0,4).forEach(function(i){
-        h+='<div onclick="openDetail(\''+i.id+'\')" style="display:flex;gap:8px;align-items:center;background:rgba(255,255,255,.02);border:1px solid var(--b);border-radius:7px;padding:8px 10px;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'var(--ch)\'" onmouseout="this.style.background=\'rgba(255,255,255,.02)\'">';
-        h+='<div style="width:5px;height:5px;border-radius:50%;background:'+sc(i.severity)+';flex-shrink:0"></div>';
-        h+='<div style="flex:1;min-width:0">';
-        h+='<div style="font-size:12px;font-weight:600;color:var(--text)">'+esc(i.issue_type)+' — '+esc(i.ward)+'</div>';
-        h+='<div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(i.description.slice(0,70))+'</div></div>';
-        h+='<div style="font-size:10.5px;color:var(--muted);font-family:\'JetBrains Mono\',monospace;flex-shrink:0">'+fmtd(i.created_at).split('·')[0]+'</div></div>';
-      });
-      h+='</div>';
-    }
-    h+='</div>';
+  h+='<div class="pan">';
+  h+='<div class="ph"><div class="pt">Database Summary</div></div>';
+  var bySource={};DATA.issues.forEach(function(i){bySource[i.source]=(bySource[i.source]||0)+1;});
+  Object.entries(bySource).forEach(function(e2){
+    var m=SRC_META[e2[0]]||SRC_META.citizen;
+    var pct=DATA.issues.length?Math.round(e2[1]/DATA.issues.length*100):0;
+    h+='<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:'+m.color+';font-weight:600">'+m.label+'</span><span style="color:var(--muted);font-family:\'JetBrains Mono\',monospace">'+e2[1]+' ('+pct+'%)</span></div>'+prog(pct,m.color+'90')+'</div>';
   });
+  h+='<div style="margin-top:12px;font-size:11px;color:var(--muted)">Total in DB: <strong style="color:var(--text)">'+DATA.issues.length+'</strong></div></div>';
   return h;
 }
 
-/* ════════════════════════════════════════
+/* ════════════════════════════════════════════════
+   ACTIONS
+════════════════════════════════════════════════ */
+function upvoteIssue(id,btn){
+  fetch(API+'/api/issues/'+id+'/upvote',{method:'POST'})
+    .then(function(r){return r.json();})
+    .then(function(d){if(btn)btn.textContent='▲ '+d.upvotes;var i=DATA.issues.find(function(x){return x.issue_id===id;});if(i)i.upvotes=d.upvotes;})
+    .catch(function(){if(btn)btn.textContent='▲ ✓';});
+}
+
+function selWard(name,id){
+  wardSel=wardSel===name?'':name;
+  feedWard=id||'';
+  render();
+}
+
+/* ════════════════════════════════════════════════
    DETAIL MODAL
-═════════════════════════════════════════ */
+════════════════════════════════════════════════ */
 function openDetail(id){
-  var issue=DATA.issues.find(function(i){ return i.id===id; });
-  if(!issue) return;
-  var off=getOfficerForWard(issue.ward);
-  var meta=WARD_META[issue.ward] || {};
+  var issue=DATA.issues.find(function(i){return i.issue_id===id;});
+  if(!issue)return;
   var days=dopen(issue.created_at);
   var steps=['Submitted','Verified','Assigned','In Progress','Resolved'];
-  var sIdx=issue.status==='resolved'||issue.status==='closed'?4:Math.min(1+Math.floor(days/6),3);
-  var tweet='🚨 '+days+'d UNRESOLVED — '+issue.ward+', Bengaluru\n\n'+issue.issue_type+': '+issue.description.slice(0,100)+'\n\nResponsible: '+off.mla+' (MLA) · BBMP: '+off.bbmp+'\n\n#'+issue.ward.replace(/\s/g,'')+' #CivicAI #BBMP #Bengaluru';
-  var wa='*CivicAI Alert 🚨*\n\n*'+issue.issue_type+'* in *'+issue.ward+'* — *'+days+' days unresolved*\n\n📍 '+issue.location_name+'\n'+issue.description.slice(0,120)+'\n\nOfficer: *'+off.bbmp+'* ('+off.dept+')\nMLA: *'+off.mla+'*\n\nTrack at civicai.in';
+  var sIdx=issue.status==='resolved'?4:Math.min(1+Math.floor(days/6),3);
+  var tweet='🚨 '+days+'d UNRESOLVED — '+(issue.ward_name||'')+', Bengaluru\n\n'+issue.issue_type+': '+issue.description.slice(0,100)+'\n\nMLA: '+(issue.mla||'—')+'\n\n#'+(issue.ward_name||'Bengaluru').replace(/\s/g,'')+' #CivicAI #BBMP #Bengaluru';
 
   var h='<div class="ov" id="det-ov" onclick="if(event.target===this)this.remove()">';
-  h+='<div class="modal">';
-  h+='<div class="mhead"><div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--muted);letter-spacing:2px">#'+issue.id+' · '+(issue.source||'').toUpperCase()+'</div>';
+  h+='<div class="modal"><div class="mhead"><div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--muted);letter-spacing:2px">#'+esc(issue.issue_id)+' · '+(issue.source||'').toUpperCase()+'</div>';
   h+='<button class="closebtn" onclick="document.getElementById(\'det-ov\').remove()">'+xsvg()+'</button></div>';
   h+='<div class="mbody">';
-  if(issue.image_url) h+='<img src="'+issue.image_url+'" style="width:100%;border-radius:10px;margin-bottom:14px;max-height:190px;object-fit:cover">';
+  if(issue.image_url)h+='<img src="'+esc(issue.image_url)+'" style="width:100%;border-radius:10px;margin-bottom:14px;max-height:190px;object-fit:cover">';
   h+='<div style="font-size:21px;font-weight:800;color:var(--text);margin-bottom:4px">'+esc(issue.issue_type)+'</div>';
-  h+='<div style="font-size:12.5px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:4px">'+pinsvg()+' '+esc(issue.location_name||issue.ward)+'</div>';
-
+  h+='<div style="font-size:12.5px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:4px">'+pinsvg()+' '+esc(issue.location_name||issue.ward_name||'')+'</div>';
+  // Step tracker
   h+='<div style="display:flex;align-items:flex-start;margin-bottom:18px">';
   steps.forEach(function(s,i){
-    h+='<div style="flex:1;display:flex;flex-direction:column;align-items:center">';
-    h+='<div style="display:flex;align-items:center;width:100%">';
-    if(i>0) h+='<div style="flex:1;height:2px;background:'+(i<=sIdx?'var(--teal)':'var(--b)')+'"></div>';
+    h+='<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="display:flex;align-items:center;width:100%">';
+    if(i>0)h+='<div style="flex:1;height:2px;background:'+(i<=sIdx?'var(--teal)':'var(--b)')+'"></div>';
     h+='<div style="width:20px;height:20px;border-radius:50%;background:'+(i<=sIdx?'var(--teal)':'var(--b)')+';display:flex;align-items:center;justify-content:center;font-size:10px;color:'+(i<=sIdx?'#0C0F1A':'var(--muted)')+';font-weight:800;flex-shrink:0">'+(i<sIdx?'✓':i===sIdx?'●':'')+'</div>';
-    if(i<steps.length-1) h+='<div style="flex:1;height:2px;background:'+(i<sIdx?'var(--teal)':'var(--b)')+'"></div>';
-    h+='</div>';
-    h+='<div style="font-size:9px;color:'+(i<=sIdx?'var(--sub)':'var(--muted)')+';margin-top:4px;text-align:center">'+s+'</div></div>';
+    if(i<steps.length-1)h+='<div style="flex:1;height:2px;background:'+(i<sIdx?'var(--teal)':'var(--b)')+'"></div>';
+    h+='</div><div style="font-size:9px;color:'+(i<=sIdx?'var(--sub)':'var(--muted)')+';margin-top:4px;text-align:center">'+s+'</div></div>';
   });
   h+='</div>';
-
   h+='<div style="display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap">'+spill(issue.severity)+' '+stpill(issue.status);
-  if(issue.source&&issue.source!=='seed') h+=' '+srcbdg(issue.source);
+  if(issue.source&&issue.source!=='seed')h+=' '+srcbdg(issue.source);
   h+='</div>';
-
-  h+='<div style="background:var(--faint);border-radius:8px;padding:9px 12px;margin-bottom:12px;font-family:\'JetBrains Mono\',monospace;font-size:11.5px;color:var(--muted)">📅 Reported: '+fmtd(issue.created_at)+(issue.latitude?'<br>📍 '+Number(issue.latitude).toFixed(5)+', '+Number(issue.longitude).toFixed(5):'')+'</div>';
+  h+='<div style="background:var(--faint);border-radius:8px;padding:9px 12px;margin-bottom:12px;font-family:\'JetBrains Mono\',monospace;font-size:11.5px;color:var(--muted)">📅 '+fmtd(issue.created_at)+(issue.latitude?'<br>📍 '+parseFloat(issue.latitude).toFixed(5)+', '+parseFloat(issue.longitude).toFixed(5):'')+'</div>';
   h+='<div style="font-size:13.5px;color:var(--sub);line-height:1.55;margin-bottom:16px">'+esc(issue.description)+'</div>';
-  if(issue.source_url) h+='<a href="'+issue.source_url+'" target="_blank" rel="noreferrer" style="font-size:12px;color:var(--blue);display:block;margin-bottom:14px">🔗 View original source ↗</a>';
-
+  if(issue.source_url)h+='<a href="'+esc(issue.source_url)+'" target="_blank" rel="noreferrer" style="font-size:12px;color:var(--blue);display:block;margin-bottom:14px">🔗 View original source ↗</a>';
+  // Accountability (fetched from backend)
   h+='<div style="border-top:1px solid var(--b);padding-top:14px;margin-bottom:14px">';
   h+='<div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:9px">Policy Accountability</div>';
-  [
-    ['Responsible MLA',off.mla],
-    ['Department',off.dept],
-    ['Officer in Charge',off.bbmp],
-    ['Zone', meta.zone || issue.zone || '—'],
-    ['Constituency', meta.constituency || '—']
-  ].forEach(function(r){
-    h+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--b);font-size:12.5px">';
-    h+='<span style="color:var(--teal)">'+r[0]+'</span><span style="color:var(--text);font-weight:600">'+esc(r[1])+'</span></div>';
-  });
+  h+='<div id="officials-panel-'+id+'"><div style="font-size:12px;color:var(--muted)">Loading officials…</div></div>';
   h+='</div>';
-
-  h+='<div style="background:'+(days>30?'rgba(255,51,85,.07)':'rgba(255,140,0,.06)')+';border-radius:9px;padding:10px;font-size:12px;color:var(--sub);margin-bottom:10px">';
-  h+='⏱ <strong style="color:'+(days>30?'var(--red)':'var(--orange)')+'">Elapsed: '+days+' days</strong>'+(days>30?' · ⚠ SLA BREACHED — escalate now':'');
-  h+='</div>';
+  h+='<div style="background:'+(days>30?'rgba(255,51,85,.07)':'rgba(255,140,0,.06)')+';border-radius:9px;padding:10px;font-size:12px;color:var(--sub);margin-bottom:10px">⏱ <strong style="color:'+(days>30?'var(--red)':'var(--orange)')+'">Elapsed: '+days+' days</strong>'+(days>30?' · ⚠ SLA BREACHED — escalate now':'')+'</div>';
   h+='<div class="prog" style="margin-bottom:16px"><div class="prog-f" style="width:'+Math.min(days/30*100,100)+'%;background:'+(days>30?'var(--red)':'linear-gradient(90deg,var(--teal),var(--orange))')+'"></div></div>';
-
   h+='<div style="display:flex;gap:8px;margin-bottom:8px">';
-  h+='<button onclick="upvote(\''+issue.id+'\',this)" style="flex:1;padding:9px;border-radius:8px;background:rgba(0,200,150,.08);border:1px solid rgba(0,200,150,.18);color:var(--teal);font-size:13px;font-weight:700;cursor:pointer">▲ Upvote ('+issue.upvotes+')</button>';
-  h+='<button onclick="cp(\''+safeEsc(tweet)+'\')" style="flex:1;padding:9px;border-radius:8px;background:rgba(29,161,242,.08);border:1px solid rgba(29,161,242,.18);color:#1DA1F2;font-size:13px;font-weight:700;cursor:pointer">𝕏 Copy Tweet</button>';
+  h+='<button onclick="upvoteIssue(\''+esc(issue.issue_id)+'\',this)" style="flex:1;padding:9px;border-radius:8px;background:rgba(0,200,150,.08);border:1px solid rgba(0,200,150,.18);color:var(--teal);font-size:13px;font-weight:700;cursor:pointer">▲ Upvote ('+issue.upvotes+')</button>';
+  h+='<button onclick="cp(\''+tweet.replace(/'/g,"\\'")+'\',\'Tweet\')" style="flex:1;padding:9px;border-radius:8px;background:rgba(29,161,242,.08);border:1px solid rgba(29,161,242,.18);color:#1DA1F2;font-size:13px;font-weight:700;cursor:pointer">𝕏 Copy Tweet</button>';
   h+='</div>';
-  h+='<button onclick="cp(\''+safeEsc(wa)+'\')" style="width:100%;padding:9px;border-radius:8px;background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.18);color:#25D166;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">💬 Copy WhatsApp</button>';
-  h+='<button onclick="document.getElementById(\'det-ov\').remove();openEsc(\''+issue.id+'\')" style="width:100%;padding:11px;border-radius:10px;background:linear-gradient(135deg,var(--red),var(--orange));border:none;color:#fff;font-size:14px;font-weight:800;cursor:pointer">⚡ Escalate to Officials</button>';
+  h+='<button onclick="document.getElementById(\'det-ov\').remove();openEsc(\''+esc(issue.issue_id)+'\')" style="width:100%;padding:11px;border-radius:10px;background:linear-gradient(135deg,var(--red),var(--orange));border:none;color:#fff;font-size:14px;font-weight:800;cursor:pointer">⚡ Escalate to Officials</button>';
   h+='</div></div></div>';
-
   document.body.insertAdjacentHTML('beforeend',h);
+  // Load officials from API
+  if(issue.ward_id){
+    fetch(API+'/api/wards/'+issue.ward_id+'/officials')
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var panel=document.getElementById('officials-panel-'+id);
+        if(!panel)return;
+        var oh='';
+        d.officials.forEach(function(o){
+          oh+='<div class="off-row"><div class="off-role">'+esc(o.role)+'</div><div><div class="off-name">'+esc(o.name)+'</div><div class="off-dept">'+esc(o.dept)+'</div></div></div>';
+        });
+        if(d.helplines){
+          oh+='<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--b);font-size:11px;color:var(--muted)">BBMP: <strong style="color:var(--text)">'+d.helplines.bbmp+'</strong> · BWSSB: <strong style="color:var(--text)">'+d.helplines.bwssb+'</strong> · BESCOM: <strong style="color:var(--text)">'+d.helplines.bescom+'</strong></div>';
+        }
+        panel.innerHTML=oh;
+      })
+      .catch(function(){
+        var panel=document.getElementById('officials-panel-'+id);
+        if(panel)panel.innerHTML='<div style="font-size:12px;color:var(--muted)">Officials data unavailable</div>';
+      });
+  } else {
+    var panel=document.getElementById('officials-panel-'+id);
+    if(panel)panel.innerHTML='<div style="font-size:12px;color:var(--muted)">Ward not assigned — officials unknown</div>';
+  }
 }
 
-/* ════════════════════════════════════════
-   ESCALATE MODAL
-═════════════════════════════════════════ */
+/* ════════════════════════════════════════════════
+   ESCALATION MODAL
+════════════════════════════════════════════════ */
 function openEsc(id){
-  var issue=DATA.issues.find(function(i){ return i.id===id; });
-  if(!issue) return;
-  var off=getOfficerForWard(issue.ward);
+  var issue=DATA.issues.find(function(i){return i.issue_id===id;});
+  if(!issue)return;
   var days=dopen(issue.created_at);
-  var tweet='🚨 '+days+'d UNRESOLVED — '+issue.ward+', Bengaluru\n\n'+issue.issue_type+': '+issue.description.slice(0,100)+'\n\nResponsible: '+off.mla+' (MLA) · BBMP: '+off.bbmp+'\n\n#'+issue.ward.replace(/\s/g,'')+' #CivicAI #BBMP #Bengaluru';
-  var email='Subject: [URGENT] Unresolved '+issue.issue_type+' — '+issue.ward+' ('+days+' days overdue)\n\nDear '+off.bbmp+',\n'+off.dept+' Department, BBMP\n\nCivicAI Issue: #'+issue.id+'\nIssue: '+issue.issue_type+'\nLocation: '+issue.location_name+'\nSeverity: '+issue.severity.toUpperCase()+'\nReported: '+fmtd(issue.created_at)+'\nDays Open: '+days+'\n\nThis issue is publicly tracked at civicai.in.\n\nCC: '+off.mla+' (MLA, '+issue.ward+')\n\nImmediate action required.\n— CivicAI Citizen Network';
-  var wa='*CivicAI Alert 🚨*\n*'+issue.issue_type+'* — *'+issue.ward+'* · *'+days+' days unresolved*\n\n📍 '+issue.location_name+'\n'+issue.description.slice(0,120)+'\n\nOfficer: *'+off.bbmp+'* ('+off.dept+') · MLA: *'+off.mla+'*\n\nShare to demand action! civicai.in';
-
-  var h='<div class="ov" id="esc-ov" onclick="if(event.target===this)this.remove()">';
-  h+='<div class="modal">';
-  h+='<div class="mhead"><div class="mtitle" style="display:flex;align-items:center;gap:7px">⚡ Escalate Issue</div><button class="closebtn" onclick="document.getElementById(\'esc-ov\').remove()">'+xsvg()+'</button></div>';
-  h+='<div class="mbody">';
-  h+='<div style="background:rgba(255,51,85,.07);border:1px solid rgba(255,51,85,.17);border-radius:9px;padding:11px;margin-bottom:13px">';
-  h+='<div style="font-size:10px;color:var(--red);font-weight:700;margin-bottom:2px">#'+issue.id+'</div>';
-  h+='<div style="font-size:14px;font-weight:700;color:var(--text)">'+esc(issue.issue_type)+' · '+esc(issue.ward)+'</div>';
-  h+='<div style="font-size:11.5px;color:var(--muted);margin-top:1px">'+days+' days unresolved · '+issue.upvotes+' upvotes · '+fmtd(issue.created_at)+'</div></div>';
-  [['MLA',off.mla],['BBMP Officer',off.bbmp],['Department',off.dept]].forEach(function(r){
-    h+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--b);font-size:12.5px"><span style="color:var(--muted)">'+r[0]+'</span><span style="color:var(--text);font-weight:600">'+esc(r[1])+'</span></div>';
-  });
-
-  [
-    ['𝕏 Tweet Template',tweet,'#1DA1F2','rgba(29,161,242,.08)','Tweet'],
-    ['💬 WhatsApp Message',wa,'#25D166','rgba(37,211,102,.08)','WhatsApp'],
-    ['✉ Email Draft',email,'var(--blue)','rgba(59,158,255,.08)','Email']
-  ].forEach(function(t){
-    h+='<div style="margin-top:14px">';
-    h+='<div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px">'+t[0]+'</div>';
+  var tweet='🚨 '+days+'d UNRESOLVED — '+(issue.ward_name||'')+', Bengaluru\n\n'+issue.issue_type+': '+issue.description.slice(0,100)+'\n\nMLA: '+(issue.mla||'—')+'\n\n#'+(issue.ward_name||'Bengaluru').replace(/\s/g,'')+' #CivicAI #BBMP #Bengaluru';
+  var email='Subject: [URGENT] Unresolved '+issue.issue_type+' — '+(issue.ward_name||'')+' ('+days+' days)\n\nDear Officer,\nBBMP '+(issue.zone||'')+' Zone\n\nCivicAI Issue: #'+issue.issue_id+'\nIssue: '+issue.issue_type+'\nLocation: '+(issue.location_name||'')+'\nSeverity: '+(issue.severity||'').toUpperCase()+'\nDays Open: '+days+'\nMLA: '+(issue.mla||'—')+'\n\nThis issue is tracked at civicai.in. Mandated SLA is 30 days — currently at '+days+' days.\n\nImmediate action required.\n— CivicAI Citizen Network';
+  var wa='*CivicAI Alert 🚨*\n\n*'+issue.issue_type+'* — *'+(issue.ward_name||'')+'* · *'+days+' days unresolved*\n\n📍 '+(issue.location_name||'')+'\n'+issue.description.slice(0,120)+'\n\nMLA: *'+(issue.mla||'—')+'*\n\nShare to demand action! civicai.in';
+  var h='<div class="ov" id="esc-ov" onclick="if(event.target===this)this.remove()"><div class="modal"><div class="mhead"><div class="mtitle">⚡ Escalate Issue</div><button class="closebtn" onclick="document.getElementById(\'esc-ov\').remove()">'+xsvg()+'</button></div><div class="mbody">';
+  h+='<div style="background:rgba(255,51,85,.07);border:1px solid rgba(255,51,85,.17);border-radius:9px;padding:11px;margin-bottom:13px"><div style="font-size:10px;color:var(--red);font-weight:700;margin-bottom:2px">#'+esc(issue.issue_id)+'</div>';
+  h+='<div style="font-size:14px;font-weight:700;color:var(--text)">'+esc(issue.issue_type)+' · '+esc(issue.ward_name||'')+'</div>';
+  h+='<div style="font-size:11.5px;color:var(--muted);margin-top:1px">'+days+' days unresolved · '+issue.upvotes+' upvotes</div></div>';
+  [['𝕏 Tweet',tweet,'#1DA1F2','rgba(29,161,242,.08)','Tweet'],['💬 WhatsApp',wa,'#25D166','rgba(37,211,102,.08)','WhatsApp'],['✉ Email',email,'var(--blue)','rgba(59,158,255,.08)','Email']].forEach(function(t){
+    h+='<div style="margin-top:14px"><div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px">'+t[0]+' Template</div>';
     h+='<pre style="background:rgba(255,255,255,.025);border-radius:8px;padding:10px;font-size:11px;color:var(--sub);line-height:1.55;white-space:pre-wrap;max-height:110px;overflow-y:auto;font-family:\'JetBrains Mono\',monospace">'+esc(t[1])+'</pre>';
-    h+='<button onclick="cp(\''+safeEsc(t[1])+'\',\''+t[4]+'\')" class="copybtn" style="background:'+t[3]+';border:1px solid '+t[2]+'40;color:'+t[2]+'">Copy '+t[4]+'</button>';
-    h+='</div>';
+    h+='<button onclick="cp(\''+t[1].replace(/'/g,"\\'")+'\',\''+t[4]+'\')" class="copybtn" style="background:'+t[3]+';border:1px solid '+t[2]+'40;color:'+t[2]+'">Copy '+t[4]+'</button></div>';
   });
   h+='</div></div></div>';
   document.body.insertAdjacentHTML('beforeend',h);
 }
 
-/* ════════════════════════════════════════
-   REPORT MODAL
-═════════════════════════════════════════ */
+/* ════════════════════════════════════════════════
+   REPORT MODAL — PERSISTENT (POST to /api/issues)
+════════════════════════════════════════════════ */
 function openRpt(){
-  rptStep=1;
-  rptForm={issue_type:'',description:'',location_name:'',ward:'',image_url:null,ward_id:null};
-  aiRes=null;
+  rptStep=1;rptForm={issue_type:'',description:'',location_name:'',ward_id:'',ward_name:'',image_url:null,latitude:null,longitude:null};aiRes=null;
   document.body.insertAdjacentHTML('beforeend',buildRptModal());
+  // Try GPS
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(function(pos){
+      rptForm.latitude=pos.coords.latitude;rptForm.longitude=pos.coords.longitude;
+      toast('📍 Location detected','#30D158');
+    },function(){});
+  }
 }
 function buildRptModal(){
-  return '<div class="ov" id="rpt-ov" onclick="if(event.target===this)this.remove()"><div class="modal"><div class="mhead"><div style="display:flex;align-items:center;gap:9px"><svg width="22" height="22" viewBox="0 0 100 100" fill="none"><defs><linearGradient id="rlg2" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00C896"/><stop offset="100%" stop-color="#3B9EFF"/></linearGradient></defs><path d="M50 50 Q50 24 32 18 Q14 12 14 30 Q14 46 30 50 Q46 54 50 50Z" stroke="url(#rlg2)" stroke-width="6.5" fill="none"/><path d="M50 50 Q50 24 68 18 Q86 12 86 30 Q86 46 70 50 Q54 54 50 50Z" stroke="url(#rlg2)" stroke-width="6.5" fill="none"/><path d="M50 50 Q50 76 32 82 Q14 88 14 70 Q14 54 30 50 Q46 46 50 50Z" stroke="url(#rlg2)" stroke-width="6.5" fill="none"/><path d="M50 50 Q50 76 68 82 Q86 88 86 70 Q86 54 70 50 Q54 46 50 50Z" stroke="url(#rlg2)" stroke-width="6.5" fill="none"/></svg><div class="mtitle">Report a Civic Issue</div></div><button class="closebtn" onclick="document.getElementById(\'rpt-ov\').remove()">'+xsvg()+'</button></div><div class="mbody" id="rpt-body">'+rptHTML()+'</div></div></div>';
+  return '<div class="ov" id="rpt-ov" onclick="if(event.target===this)this.remove()"><div class="modal"><div class="mhead"><div style="display:flex;align-items:center;gap:9px"><svg width="22" height="22" viewBox="0 0 100 100" fill="none"><defs><linearGradient id="rlg" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00C896"/><stop offset="100%" stop-color="#3B9EFF"/></linearGradient></defs><path d="M50 50 Q50 24 32 18 Q14 12 14 30 Q14 46 30 50 Q46 54 50 50Z" stroke="url(#rlg)" stroke-width="6.5" fill="none"/><path d="M50 50 Q50 24 68 18 Q86 12 86 30 Q86 46 70 50 Q54 54 50 50Z" stroke="url(#rlg)" stroke-width="6.5" fill="none"/><path d="M50 50 Q50 76 32 82 Q14 88 14 70 Q14 54 30 50 Q46 46 50 50Z" stroke="url(#rlg)" stroke-width="6.5" fill="none"/><path d="M50 50 Q50 76 68 82 Q86 88 86 70 Q86 54 70 50 Q54 46 50 50Z" stroke="url(#rlg)" stroke-width="6.5" fill="none"/></svg><div class="mtitle">Report a Civic Issue</div></div><button class="closebtn" onclick="document.getElementById(\'rpt-ov\').remove()">'+xsvg()+'</button></div><div class="mbody" id="rpt-body">'+rptHTML()+'</div></div></div>';
 }
+var ISSUE_TYPES=["Pothole","Garbage","Broken Streetlight","Open Drain","Illegal Dumping","Damaged Footpath","Water Logging","Encroachment"];
 function rptHTML(){
-  if(rptStep===2) return rptStep2();
+  if(rptStep===2)return rptStep2();
   var h='<div class="sbar"><div class="sseg" style="background:var(--teal)"></div><div class="sseg" style="background:var(--b)"></div></div>';
-  if(rptForm.issue_type) h+='<div style="font-size:11px;color:rgba(0,200,150,.7);margin-bottom:11px">AI suggests: Is it a <strong style="color:var(--teal)">'+esc(rptForm.issue_type)+'</strong> issue?</div>';
   h+='<div class="pdrop" id="pdrop" onclick="document.getElementById(\'pfile\').click()" ondragover="event.preventDefault();this.classList.add(\'drag\')" ondragleave="this.classList.remove(\'drag\')" ondrop="event.preventDefault();this.classList.remove(\'drag\');handlePh(event.dataTransfer.files[0])">';
   if(rptForm.image_url){
     h+='<div style="position:relative"><img class="pprev" src="'+rptForm.image_url+'"><button class="prmbtn" onclick="event.stopPropagation();rptForm.image_url=null;rfr()">'+xsvg()+'</button><div style="position:absolute;bottom:7px;left:7px;background:rgba(0,200,150,.9);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">✓ Photo added</div></div>';
@@ -1423,158 +1147,128 @@ function rptHTML(){
     h+='<div style="color:var(--muted);margin-bottom:6px;display:flex;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>';
     h+='<div style="font-size:13.5px;color:var(--sub);font-weight:600">Add Photo</div>';
     h+='<div style="font-size:11px;color:var(--muted);margin-top:3px">Tap · Drag & drop · JPG/PNG/HEIC</div>';
-    h+='<div style="font-size:10px;color:rgba(0,200,150,.6);margin-top:4px">AI will auto-classify issue type from photo</div>';
   }
   h+='<input type="file" id="pfile" accept="image/*" style="display:none" onchange="handlePh(this.files[0])"></div>';
   h+='<label class="fl">Issue Type</label><select class="fi" onchange="rptForm.issue_type=this.value"><option value="" disabled '+(rptForm.issue_type?'':'selected')+'>Select issue type</option>';
-  ISSUE_TYPES.forEach(function(t){ h+='<option value="'+t+'"'+(rptForm.issue_type===t?' selected':'')+'>'+t+'</option>'; });
+  ISSUE_TYPES.forEach(function(t){h+='<option value="'+t+'"'+(rptForm.issue_type===t?' selected':'')+'>'+t+'</option>';});
   h+='</select>';
   h+='<label class="fl">Description</label><textarea class="fi" rows="3" placeholder="Describe the issue clearly…" oninput="rptForm.description=this.value">'+esc(rptForm.description)+'</textarea>';
-  h+='<label class="fl">Location</label><input class="fi" type="text" placeholder="e.g. Indiranagar 12th Main" value="'+esc(rptForm.location_name)+'" oninput="rptForm.location_name=this.value">';
-  h+='<label class="fl">Ward</label><select class="fi" onchange="onWardSelect(this.value)"><option value="" disabled '+(rptForm.ward?'':'selected')+'>Select your ward</option>';
-  Object.entries(WARDS_BY_ZONE).forEach(function(zEntry){
-    h+='<optgroup label="── '+zEntry[0]+' ──">';
-    zEntry[1].forEach(function(w){ h+='<option value="'+esc(w)+'"'+(rptForm.ward===w?' selected':'')+'>'+esc(w)+'</option>'; });
-    h+='</optgroup>';
-  });
-  h+='</select>';
+  h+='<label class="fl">Location / Street Name</label><input class="fi" type="text" placeholder="e.g. Indiranagar 12th Main, near petrol pump" value="'+esc(rptForm.location_name)+'" oninput="rptForm.location_name=this.value">';
+  h+='<label class="fl">Ward — Select from 198 BBMP wards</label><select class="fi" onchange="rptForm.ward_id=this.value;var w=WARDS_198.find(function(x){return x.id==this.value;},this);rptForm.ward_name=w?w.n:\'\'">'+wardDropOpts()+'</select>';
+  if(rptForm.latitude)h+='<div style="font-size:11px;color:var(--teal);margin-bottom:11px">📍 GPS detected: '+rptForm.latitude.toFixed(4)+', '+rptForm.longitude.toFixed(4)+'</div>';
   h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">';
-  h+='<div style="font-size:11px;color:var(--teal);font-weight:600">✓ Will be saved to backend</div>';
-  h+='<button onclick="submitS1()" style="padding:9px 22px;border-radius:9px;background:linear-gradient(135deg,#00C896,#0070F3);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer">Next: Review →</button>';
+  h+='<div style="font-size:11px;color:var(--teal);font-weight:600">✓ Verified by CivicChain</div>';
+  h+='<button onclick="submitS1()" style="padding:9px 22px;border-radius:9px;background:linear-gradient(135deg,#00C896,#0070F3);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer">Next: AI Review →</button>';
   h+='</div>';
   return h;
-}
-function onWardSelect(wardName){
-  rptForm.ward = wardName;
-  rptForm.ward_id = WARD_META[wardName] ? WARD_META[wardName].ward_id : null;
 }
 function rptStep2(){
   var h='<div class="sbar"><div class="sseg" style="background:var(--teal)"></div><div class="sseg" style="background:var(--teal)"></div></div>';
-  if(rptForm.image_url) h+='<img src="'+rptForm.image_url+'" style="width:100%;border-radius:9px;margin-bottom:13px;max-height:155px;object-fit:cover">';
-  h+='<div class="aibox"><div class="ai-lbl">✓ Review Complete</div>';
+  if(rptForm.image_url)h+='<img src="'+rptForm.image_url+'" style="width:100%;border-radius:9px;margin-bottom:13px;max-height:155px;object-fit:cover">';
+  h+='<div class="aibox"><div class="ai-lbl">'+(!aiRes?'⏳ Classifying…':'✓ AI Review Complete')+'</div>';
   if(aiRes){
     h+='<div style="font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:7px">'+esc(aiRes.ai_summary||'Classified successfully.')+'</div>';
     h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px">'+spill(aiRes.severity||'medium');
-    if(aiRes.department) h+='<span class="pill" style="color:var(--blue);background:rgba(59,158,255,0.12)">'+esc(aiRes.department)+'</span>';
-    if(aiRes.priority_score) h+='<span class="pill" style="color:var(--muted);background:var(--faint)">P'+aiRes.priority_score+'/100</span>';
+    if(aiRes.department)h+='<span class="pill" style="color:var(--blue);background:rgba(59,158,255,.12)">'+esc(aiRes.department)+'</span>';
+    if(aiRes.priority_score)h+='<span class="pill" style="color:var(--muted);background:var(--faint)">P'+aiRes.priority_score+'/100</span>';
     h+='</div>';
-  } else {
-    h+='<div style="font-size:13px;color:var(--sub)">Classified as civic issue requiring attention.</div>';
+    if(aiRes.estimated_days)h+='<div style="font-size:11px;color:var(--muted)">Est. resolution: '+aiRes.estimated_days+' days</div>';
   }
   h+='</div>';
-  h+='<div style="font-size:12px;color:var(--muted);margin-bottom:14px">'+pinsvg()+' '+(rptForm.location_name||'—')+' · '+(rptForm.ward||'—')+'</div>';
+  h+='<div style="font-size:12px;color:var(--muted);margin-bottom:14px">'+pinsvg()+' '+(rptForm.location_name||'—')+' · '+(rptForm.ward_name||'—')+'</div>';
   h+='<div style="display:flex;gap:8px">';
   h+='<button onclick="rptStep=1;rfr()" style="flex:1;padding:10px;border-radius:9px;background:var(--faint);border:1px solid var(--b);color:var(--sub);font-size:13.5px;font-weight:600;cursor:pointer">← Edit</button>';
-  h+='<button onclick="finalSub()" style="flex:2;padding:10px;border-radius:9px;background:linear-gradient(135deg,#00C896,#0070F3);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer">Submit Issue ✓</button>';
+  h+='<button onclick="finalSub()" style="flex:2;padding:10px;border-radius:9px;background:linear-gradient(135deg,#00C896,#0070F3);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer" id="submit-btn">Submit & Save ✓</button>';
   h+='</div>';
-  h+='<div style="font-size:10px;color:var(--muted);text-align:center;margin-top:10px">This will be stored in backend DB.</div>';
+  h+='<div style="font-size:10px;color:var(--muted);text-align:center;margin-top:10px">Saved permanently to database · AI classification is advisory</div>';
   return h;
 }
-function rfr(){ var b=e('rpt-body'); if(b) b.innerHTML=rptHTML(); }
+function rfr(){var b=e('rpt-body');if(b)b.innerHTML=rptHTML();}
 function handlePh(file){
-  if(!file||!file.type.startsWith('image/')) return;
+  if(!file||!file.type.startsWith('image/'))return;
   var r=new FileReader();
-  r.onload=function(ev){ rptForm.image_url=ev.target.result; rfr(); };
+  r.onload=function(ev){rptForm.image_url=ev.target.result;rfr();};
   r.readAsDataURL(file);
 }
-function submitS1(){
-  if(!rptForm.issue_type||!rptForm.description){ toast('Please select type and add description','#FF8C00'); return; }
-  if(!rptForm.ward){ toast('Please select a ward','#FF8C00'); return; }
-  rptStep=2;
-  aiRes={
-    severity:'medium',
-    ai_summary:'Prepared for backend submission.',
-    department:'BBMP Department',
-    priority_score:55,
-    estimated_days:14
-  };
+async function submitS1(){
+  if(!rptForm.issue_type||!rptForm.description){toast('Please select issue type and add description','#FF8C00');return;}
+  if(!rptForm.ward_id){toast('Please select your ward','#FF8C00');return;}
+  rptStep=2;rfr();
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:'Classify this Bengaluru civic issue. Reply ONLY with valid JSON:\nIssue: '+rptForm.issue_type+'\nDescription: '+rptForm.description+'\nLocation: '+(rptForm.location_name||'Bengaluru')+'\nReturn: {"severity":"critical|high|medium|low","ai_summary":"one sentence","department":"BBMP dept","priority_score":1-100,"estimated_days":7-60}'}]})});
+    var d=await res.json();
+    var t=((d.content||[]).find(function(c){return c.type==='text';})||{}).text||'{}';
+    aiRes=JSON.parse(t.replace(/```json|```/g,'').trim());
+  }catch(err){
+    aiRes={severity:'medium',ai_summary:'Classified as civic issue requiring attention.',department:'Public Works',priority_score:55,estimated_days:14};
+  }
   rfr();
 }
 async function finalSub(){
-  if(!rptForm.ward){ toast('Ward is required','#FF8C00'); return; }
-
+  var btn=e('submit-btn');if(btn){btn.disabled=true;btn.textContent='Saving…';}
+  var payload={
+    issue_type:rptForm.issue_type,
+    description:rptForm.description,
+    location_name:rptForm.location_name,
+    ward_id:rptForm.ward_id?parseInt(rptForm.ward_id):null,
+    severity:aiRes?aiRes.severity:'medium',
+    latitude:rptForm.latitude,
+    longitude:rptForm.longitude,
+    image_url:rptForm.image_url,
+    reporter_name:'Anonymous',
+  };
   try{
-    var payload={
-      issue_type:rptForm.issue_type,
-      description:rptForm.description,
-      location_name:rptForm.location_name,
-      ward_id:rptForm.ward_id,
-      ward:rptForm.ward,
-      source:'citizen',
-      image_url:rptForm.image_url,
-      severity: aiRes ? aiRes.severity : 'medium'
-    };
-
-    await api('/issues', {
-      method:'POST',
-      body: JSON.stringify(payload)
+    var res=await fetch(API+'/api/issues',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(res.status===409){
+      var d=await res.json();
+      toast('⚠ Possible duplicate — '+d.message,'#FF8C00');
+      if(btn){btn.disabled=false;btn.textContent='Submit & Save ✓';}
+      return;
+    }
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    var saved=await res.json();
+    // Add to local state ONLY after confirmed DB save
+    DATA.issues.unshift({
+      issue_id:saved.issue_id,ward_id:rptForm.ward_id,ward_name:saved.ward_name||rptForm.ward_name,
+      zone:null,constituency:null,mla:null,
+      issue_type:rptForm.issue_type,description:rptForm.description,
+      location_name:rptForm.location_name,latitude:rptForm.latitude,longitude:rptForm.longitude,
+      severity:saved.severity,status:'open',source:'citizen',
+      upvotes:0,image_url:rptForm.image_url,created_at:new Date().toISOString(),
     });
-
-    var ov=e('rpt-ov'); if(ov) ov.remove();
-    toast('✓ Issue saved to backend and dashboard','#30D158');
-    await fetchIssuesFromBackend();
+    syncUI();
+    var ov=e('rpt-ov');if(ov)ov.remove();
+    toast('✓ Issue #'+saved.issue_id+' saved permanently to database!','#30D158');
+    render();
   }catch(err){
-    console.warn('[finalSub]', err);
-    toast('⚠ Save failed: '+err.message,'#FF3355');
+    console.error('[finalSub]',err);
+    toast('❌ Save failed — issue NOT stored. Check backend connection.','#FF3355');
+    if(btn){btn.disabled=false;btn.textContent='Submit & Save ✓';}
   }
 }
 
-/* ════════════════════════════════════════
-   UTILITIES
-═════════════════════════════════════════ */
-function upvote(id,btn){
-  var issue=DATA.issues.find(function(i){ return i.id===id; });
-  if(issue){ issue.upvotes++; if(btn) btn.textContent='▲ '+issue.upvotes; }
-}
-function selWard(w){
-  wardSel=wardSel===w?'':w;
-  feedWard=wardSel;
-  render();
-}
-function cp(text,label){
-  label = label || 'Text';
-  try{ navigator.clipboard.writeText(text); }
-  catch(e){
-    var t=document.createElement('textarea');
-    t.value=text; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
-  }
-  toast('✓ '+label+' copied!','#30D158');
-}
-function toast(msg,col){
-  var t=e('toast');
-  if(!t) return;
-  t.textContent=msg;
-  t.style.background=col||'#30D158';
-  t.classList.add('show');
-  setTimeout(function(){ t.classList.remove('show'); },2800);
-}
+/* ════════════════════════════════════════════════
+   SIDEBAR / KEYBOARD / INIT
+════════════════════════════════════════════════ */
+function toggleSB(){e('sb').classList.toggle('open');e('sb-ov').classList.toggle('show');}
+function closeSB(){e('sb').classList.remove('open');e('sb-ov').classList.remove('show');}
 document.addEventListener('click',function(ev){
-  var sb=e('sb'); var hb=document.querySelector('.hbtn');
-  if(window.innerWidth<768&&sb&&sb.classList.contains('open')&&!sb.contains(ev.target)&&hb&&!hb.contains(ev.target)) closeSB();
+  var sb=e('sb'),hb=document.querySelector('.hbtn');
+  if(window.innerWidth<768&&sb&&sb.classList.contains('open')&&!sb.contains(ev.target)&&hb&&!hb.contains(ev.target))closeSB();
+});
+document.addEventListener('keydown',function(ev){
+  if(ev.key==='Escape'){
+    document.querySelectorAll('.ov').forEach(function(el){el.remove();});
+    closeSB();
+  }
 });
 
-/* ════════════════════════════════════════
-   INIT
-═════════════════════════════════════════ */
-(async function init(){
-  DATA={issues:SEED,leaderboard:seedLB(),clusters:seedClusters(),timestamp:null};
-  syncUI();
-  render();
-
-  await checkHealth();
-  await loadWardMetaIndex();
-
-  if(BACKEND_OK){
-    try{
-      await fetchIssuesFromBackend();
-    }catch(err){
-      console.warn('[init-fetchIssues]', err);
-    }
-  }
-
-  setTimeout(function(){ if(BACKEND_OK) fetchData(false); }, 1000);
-  startCD();
-})();
+/* ════════════════════════════════════════════════
+   INIT — fetch from API on load, then auto-refresh
+════════════════════════════════════════════════ */
+showModeBanner('loading','⏳ Loading data from backend…');
+setTimeout(function(){fetchAll(false);},600);
+startCD();
 </script>
 </body>
 </html>
